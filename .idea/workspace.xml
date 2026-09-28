@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="9634b03b-b190-4da0-ab66-6d16369213da" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "TaeyangHan09"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/TaeyangHan09/ChessEngine-Gambit.git",
+    "accountId": "bf983ed8-119c-4f3d-a2cb-bd8d7c3806e3"
+  }
+}]]></component>
+  <component name="JsbtTreeLayoutManager">
+    <layout place="tools.popupGrunt">
+      <scroll-view-position x="0" y="0" />
+    </layout>
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.2574403752984023E-21" />
+      <entry key="MS500" value="6.60537502762277E-5" />
+      <entry key="S2" value="0.09015179328334524" />
+      <entry key="S5" value="0.3819352547493706" />
+      <entry key="S10" value="0.6180091057171979" />
+      <entry key="S30" value="0.8517882103224194" />
+      <entry key="S60" value="0.9229237294177777" />
+      <entry key="M2" value="0.9606891950145882" />
+      <entry key="M5" value="0.9840862471297657" />
+      <entry key="M10" value="0.9920112132076763" />
+      <entry key="M15" value="0.9946670256522185" />
+      <entry key="M30" value="0.9973299482379032" />
+      <entry key="H1" value="0.9986640817802065" />
+      <entry key="H2" value="0.9993318176562811" />
+      <entry key="H4" value="0.9996658530010322" />
+      <entry key="D1" value="0.9999443010781566" />
+      <entry key="W1" value="0.9999920428212177" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.0" />
+      <entry key="S5" value="1.0" />
+      <entry key="S10" value="1.0" />
+      <entry key="S30" value="1.0" />
+      <entry key="S60" value="1.0" />
+      <entry key="M2" value="1.0" />
+      <entry key="M5" value="1.0" />
+      <entry key="M10" value="1.0" />
+      <entry key="M15" value="1.0" />
+      <entry key="M30" value="1.0" />
+      <entry key="H1" value="1.0" />
+      <entry key="H2" value="1.0" />
+      <entry key="H4" value="1.0" />
+      <entry key="D1" value="1.0" />
+      <entry key="W1" value="1.0" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="1.1806983898486254E-5" />
+      <entry key="MS500" value="0.10337914502572369" />
+      <entry key="S2" value="0.6002927585762807" />
+      <entry key="S5" value="1.053288287963944" />
+      <entry key="S10" value="1.3990099943718088" />
+      <entry key="S30" value="1.7598919222767437" />
+      <entry key="S60" value="1.874019549801822" />
+      <entry key="M2" value="1.9354450703671577" />
+      <entry key="M5" value="1.9737913130287923" />
+      <entry key="M10" value="1.9868302479526796" />
+      <entry key="M15" value="1.9912055583783694" />
+      <entry key="M30" value="1.9955954577211086" />
+      <entry key="H1" value="1.9977958951093866" />
+      <entry key="H2" value="1.9988974886931854" />
+      <entry key="H4" value="1.9994486295782075" />
+      <entry key="D1" value="1.9999080889851466" />
+      <entry key="W1" value="1.9999868694644833" />
+    </decayedShown>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3JyN8iNFHzFiDcxhA2sW7TwaES8" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "master",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "SDKs",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "vcs.Git",
+    "to.speed.mode.migration.done": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-63390994e64e-intellij.indexing.shared.core-IU-262.8665.337" />
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.8665.337" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="9634b03b-b190-4da0-ab66-6d16369213da" name="Changes" comment="" />
+      <created>1790629192712</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1790629192712</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
