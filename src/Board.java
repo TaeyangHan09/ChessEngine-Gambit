@@ -2,7 +2,7 @@ public class Board {
     public static final int EMPTY = 0, PAWN = 1, KNIGHT = 2, BISHOP = 3, ROOK = 4, QUEEN = 5, KING = 6;
     public final int[] squares = new int[64];
     public boolean whiteToMove = true;
-    public int halfmoveclock = 0;
+    public int halfmoveClock = 0;
     public int fullmoveNumber = 1;
     public boolean whiteKingside = false;
     public boolean whiteQueenside = false;
@@ -78,7 +78,7 @@ public class Board {
     public static String squareNotation(int square)
     {
         char file = (char)('a' +square%8);
-        char rank = (char)(8-square/8);
+        char rank = (char)('8'-square/8);
         return "" + file + rank;
     }
     public static Board fromFen(String fen) {
@@ -94,7 +94,7 @@ public class Board {
 
         if (parts.length > 4)
         {
-            board.halfmoveclock = Integer.parseInt(parts[4]);
+            board.halfmoveClock = Integer.parseInt(parts[4]);
         }
         if (parts.length>5)
         {
@@ -104,7 +104,7 @@ public class Board {
     }
     private void readPieces(String boardText)
     {
-        String[] rows = boardText.split("/'");
+        String[] rows = boardText.split("/");
         for (int row = 1; row<8; row++)
         {
             String rowText = rows[row];
@@ -136,36 +136,50 @@ public class Board {
     }
     private void readCastling(String castlingText)
     {
-        whiteKingside = castlingText.contains("k");
+        whiteKingside = castlingText.contains("K");
         whiteQueenside = castlingText.contains("Q");
         blackKingside = castlingText.contains("k");
         blackQueenside = castlingText.contains("q");
     }
     private void readEnPassant(String enPassantText)
     {
-        // too much for now my brain is going to explode
+        if(enPassantText.equals("-"))
+        {
+            enPassantSquare = -1;
+        }
+        else
+        {
+            int column = "abcdefgh".indexOf(enPassantText.charAt(0));
+            int rankNumber = Character.getNumericValue(enPassantText.charAt(1));
+            int row = 8 -rankNumber;
+            enPassantSquare = row*8+column;
+        }
     }
     public String toString()
     {
         String boardDisplay = "";
         for (int row = 0; row<8;row++)
         {
-            boardDisplay = boardDisplay + (8-row)+"";
+            boardDisplay = boardDisplay + (8-row)+" ";
             for(int column = 0;column<8;column++)
             {
                 int piece = squares[row*8+column];
                 if(piece==EMPTY)
                 {
-                    boardDisplay = boardDisplay + "";
+                    boardDisplay = boardDisplay + " ";
                 }
                 else
                 {
-                    boardDisplay = boardDisplay + pieceToCHar(piece) +"";
+                    boardDisplay = boardDisplay + pieceToCHar(piece) +" ";
                 }
             }
         }
-        boardDisplay = boardDisplay + "a b c d e f g h";
+        boardDisplay = boardDisplay + "\n a b c d e f g h";
         return boardDisplay;
+    }
+    public String toFen()
+    {
+        return piecesToFen()+" "+turnToFen()+" "+castlingToFen()+" "+enPassantToFen()+" "+halfmoveClock + " "+fullmoveNumber;
     }
     private String piecesToFen()
     {
@@ -211,29 +225,41 @@ public class Board {
             return"b";
         }
     }
-    private String castlingToFEN()
+    private String castlingToFen()
     {
         String castlingText = "";
         if(whiteKingside)
         {
-            castlingText = castlingText+"K"
+            castlingText = castlingText+"K";
         }
         if(whiteQueenside)
         {
-            castlingText = castlingText+"Q"
+            castlingText = castlingText+"Q";
         }
         if(blackKingside)
         {
-            castlingText = castlingText+"k"
+            castlingText = castlingText+"k";
         }
         if(blackQueenside)
         {
-            castlingText = castlingText+"q"
+            castlingText = castlingText+"q";
         }
+        if(castlingText.equals(""))
+        {
+            castlingText = "-";
+        }
+        return castlingText;
     }
-    private String enPassantToText()
+    private String enPassantToFen()
     {
-        //later
+        if (enPassantSquare ==-1)
+        {
+            return"-";
+        }
+        else
+        {
+            return squareNotation(enPassantSquare);
+        }
     }
 
 
