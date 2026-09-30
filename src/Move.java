@@ -29,6 +29,7 @@ public class Move
         {
             move|= 1<<castlingPosition;
         }
+        return move;
 
     }
     public static int unbitpackcurrentPosition(int move)
@@ -59,6 +60,8 @@ public class Move
     {
         return(move&(1<<castlingPosition))!=0;
     }
+
+
 
 
 

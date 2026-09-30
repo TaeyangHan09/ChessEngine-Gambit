@@ -1,5 +1,5 @@
 public class Board {
-    public static final int EMPTY = 0, PAWN = 1, KNIGHT = 2, BISHOP = 3, ROOK = 4, QUEEN = 5, KING = 6;
+    public static final int EMPTY = 0, Pawn = 1, Knight = 2, Bishop = 3, Rook = 4, Queen = 5, King = 6;
     public final int[] squares = new int[64];
     public boolean whiteToMove = true;
     public int halfmoveClock = 0;
@@ -23,17 +23,17 @@ public class Board {
         switch (Character.toLowerCase(c))
         {
             case 'p':
-                return sign * PAWN;
+                return sign * Pawn;
             case 'n':
-                return sign * KNIGHT;
+                return sign * Knight;
             case 'b':
-                return sign * BISHOP;
+                return sign * Bishop;
             case 'r':
-                return sign * ROOK;
+                return sign * Rook;
             case 'q':
-                return sign * QUEEN;
+                return sign * Queen;
             case 'k':
-                return sign * KING;
+                return sign * King;
             default:
                 throw new IllegalArgumentException("Unknown piece: "+c);
         }
