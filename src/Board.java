@@ -136,7 +136,10 @@ public class Board {
     }
     private void readCastling(String castlingText)
     {
-        // too much for now my brain is going to explode
+        whiteKingside = castlingText.contains("k");
+        whiteQueenside = castlingText.contains("Q");
+        blackKingside = castlingText.contains("k");
+        blackQueenside = castlingText.contains("q");
     }
     private void readEnPassant(String enPassantText)
     {
@@ -210,7 +213,23 @@ public class Board {
     }
     private String castlingToFEN()
     {
-        //Later
+        String castlingText = "";
+        if(whiteKingside)
+        {
+            castlingText = castlingText+"K"
+        }
+        if(whiteQueenside)
+        {
+            castlingText = castlingText+"Q"
+        }
+        if(blackKingside)
+        {
+            castlingText = castlingText+"k"
+        }
+        if(blackQueenside)
+        {
+            castlingText = castlingText+"q"
+        }
     }
     private String enPassantToText()
     {
