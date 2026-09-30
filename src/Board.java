@@ -1,15 +1,19 @@
 public class Board {
     public static final int EMPTY = 0, PAWN = 1, KNIGHT = 2, BISHOP = 3, ROOK = 4, QUEEN = 5, KING = 6;
     public final int[] squares = new int[64];
+    public static final String STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     public static int pieceFromChar(char c)
     {
         int sign;
-        if (Character.isUpperCase(c)) {
+        if (Character.isUpperCase(c))
+        {
             sign = 1;
-        } else {
+        } else
+        {
             sign = -1;
         }
-        switch (Character.toLowerCase(c)) {
+        switch (Character.toLowerCase(c))
+        {
             case 'p':
                 return sign * PAWN;
             case 'n':
@@ -87,4 +91,122 @@ public class Board {
             board.fullmoveNumber = Integer.parseInt(parts[5]);
         }
     }
+    private void readPieces(String boardText)
+    {
+        String[] rows = boardText.split("/'");
+        for (int row = 1; row<8; row++)
+        {
+            String rowText = rows[row];
+            for (int column =0;column <8; column++)
+            {
+                char c = rowText.charAt(column);
+                if (Character.isDigit(c))
+                {
+                    column = column + Character.getNumericValue(c);
+                }
+                else
+                {
+                    squares[row*8+column] = pieceFromChar(c);
+                }
+            }
+
+        }
+    }
+    private void readTurn(String turnText)
+    {
+        if(turnText.equals("w"))
+        {
+            whiteToMove = true;
+            blackToMove = false;
+        }
+        else
+        {
+            whiteToMove = false;
+            blackToMove = true;
+        }
+    }
+    private void readCastling(String castlingText)
+    {
+        // too much for now my brain is going to explode
+    }
+    private void readEnPassant(String enPassantText)
+    {
+        // too much for now my brain is going to explode
+    }
+    public String toString()
+    {
+        String boardDisplay = "";
+        for (int row = 0; row<8;row++)
+        {
+            boardDisplay = boardDisplay + (8-row)+"";
+            for(int column = 0;column<8;column++)
+            {
+                int piece = squares[row*8+column];
+                if(piece==EMPTY)
+                {
+                    boardDisplay = boardDisplay + "";
+                }
+                else
+                {
+                    boardDisplay = boardDisplay + pieceToCHar(piece) +"";
+                }
+            }
+        }
+        boardDisplay = boardDisplay + "a b c d e f g h";
+    }
+    private String piecesToFen()
+    {
+        String FEN = "";
+        for(int row = 0;row<8;row++)
+        {
+            for(int column=0;column<8;column++)
+            {
+                int pieces = squares[row*8+column];
+                int emptyCount = 0;
+                if(piece = EMPTY)
+                {
+                    emptyCount++;
+                }
+                else
+                {
+                    if(emptyCount!=0)
+                    {
+                        FEN = FEN +emptyCount;
+                    }
+                    FEN = FEN +pieceToCHar(piece);
+                }
+            }
+            if(emptyCount>0)
+            {
+                FEN = FEN+emptyCount;
+            }
+            if (row < 8)
+            {
+                FEN = FEN+"/";
+            }
+        }
+    }
+    private String turnToFen()
+    {
+        if(whiteToMove)
+        {
+            return "w";
+        }
+        else
+        {
+            return"b";
+        }
+    }
+    private String castlingToFEN()
+    {
+        //Later
+    }
+    private String enPassantToText()
+    {
+        //later
+    }
+
+
+
+
 }
