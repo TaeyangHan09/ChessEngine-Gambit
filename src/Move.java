@@ -31,6 +31,36 @@ public class Move
         }
 
     }
+    public int unbitpackcurrentPosition()
+    {
+        return move&63;
+    }
+    public int unbitpackchangedPosition()
+    {
+        return(move>>changedPosition)&63;
+    }
+    public int unbitpackpromotionPosition()
+    {
+        return (move>>promotionPosition)&7;
+    }
+    public boolean unbitpackcapturePosition()
+    {
+        return(move&(1<<capturePosition))!=0;
+    }
+    public boolean unbitpackenPassant()
+    {
+        return(move&(1<<enPassant))!=0;
+    }
+    public boolean unbitpackdoubleJump()
+    {
+        return(move&(1<<doubleJump))!=0;
+    }
+    public boolean unbitpackcastlingPosition()
+    {
+        return(move&(1<<castlingPosition))!=0;
+    }
+
+
 
 
 
