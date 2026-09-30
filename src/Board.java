@@ -1,6 +1,14 @@
 public class Board {
     public static final int EMPTY = 0, PAWN = 1, KNIGHT = 2, BISHOP = 3, ROOK = 4, QUEEN = 5, KING = 6;
     public final int[] squares = new int[64];
+    public boolean whiteToMove = true;
+    public int halfmoveclock = 0;
+    public int fullmoveNumber = 1;
+    public boolean whiteKingside = false;
+    public boolean whiteQueenside = false;
+    public boolean blackKingside = false;
+    public boolean blackQueenside = false;
+    public int enPassantSquare = -1;
     public static final String STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     public static int pieceFromChar(char c)
     {
@@ -26,12 +34,14 @@ public class Board {
                 return sign * QUEEN;
             case 'k':
                 return sign * KING;
+            default:
+                throw new IllegalArgumentException("Unknown piece: "+c);
         }
     }
     public static char pieceToCHar(int piece)
     {
         int pieceType = Math.abs(piece);
-        char c;
+        char c =0;
         if (pieceType ==1)
         {
             c = 'P';
@@ -71,7 +81,7 @@ public class Board {
         char rank = (char)(8-square/8);
         return "" + file + rank;
     }
-    public static fromFen(String fen) {
+    public static Board fromFen(String fen) {
         String[] parts = fen.trim().split("\\s+");
         if (parts.length < 4) {
             throw new IllegalArgumentException("Invalid FEN (too few fields): " + fen);
@@ -90,6 +100,7 @@ public class Board {
         {
             board.fullmoveNumber = Integer.parseInt(parts[5]);
         }
+        return board;
     }
     private void readPieces(String boardText)
     {
@@ -117,12 +128,10 @@ public class Board {
         if(turnText.equals("w"))
         {
             whiteToMove = true;
-            blackToMove = false;
         }
         else
         {
             whiteToMove = false;
-            blackToMove = true;
         }
     }
     private void readCastling(String castlingText)
@@ -153,17 +162,18 @@ public class Board {
             }
         }
         boardDisplay = boardDisplay + "a b c d e f g h";
+        return boardDisplay;
     }
     private String piecesToFen()
     {
         String FEN = "";
         for(int row = 0;row<8;row++)
         {
+            int emptyCount = 0;
             for(int column=0;column<8;column++)
             {
-                int pieces = squares[row*8+column];
-                int emptyCount = 0;
-                if(piece = EMPTY)
+                int piece = squares[row*8+column];
+                if(piece == EMPTY)
                 {
                     emptyCount++;
                 }
@@ -185,6 +195,7 @@ public class Board {
                 FEN = FEN+"/";
             }
         }
+        return FEN;
     }
     private String turnToFen()
     {
