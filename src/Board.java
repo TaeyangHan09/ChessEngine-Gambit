@@ -105,12 +105,13 @@ public class Board {
     private void readPieces(String boardText)
     {
         String[] rows = boardText.split("/");
-        for (int row = 1; row<8; row++)
+        for (int row = 0; row<8; row++)
         {
             String rowText = rows[row];
-            for (int column =0;column <8; column++)
+            int column = 0;
+            for (int i =0;i<rowText.length(); i++)
             {
-                char c = rowText.charAt(column);
+                char c = rowText.charAt(i);
                 if (Character.isDigit(c))
                 {
                     column = column + Character.getNumericValue(c);
@@ -118,6 +119,7 @@ public class Board {
                 else
                 {
                     squares[row*8+column] = pieceFromChar(c);
+                    column =column+1;
                 }
             }
 
@@ -166,13 +168,14 @@ public class Board {
                 int piece = squares[row*8+column];
                 if(piece==EMPTY)
                 {
-                    boardDisplay = boardDisplay + " ";
+                    boardDisplay = boardDisplay + ". ";
                 }
                 else
                 {
                     boardDisplay = boardDisplay + pieceToCHar(piece) +" ";
                 }
             }
+            boardDisplay = boardDisplay +"\n";
         }
         boardDisplay = boardDisplay + "\n a b c d e f g h";
         return boardDisplay;
@@ -199,6 +202,7 @@ public class Board {
                     if(emptyCount!=0)
                     {
                         FEN = FEN +emptyCount;
+                        emptyCount =0;
                     }
                     FEN = FEN +pieceToCHar(piece);
                 }
@@ -207,7 +211,7 @@ public class Board {
             {
                 FEN = FEN+emptyCount;
             }
-            if (row < 8)
+            if (row < 7)
             {
                 FEN = FEN+"/";
             }
