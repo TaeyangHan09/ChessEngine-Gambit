@@ -265,8 +265,4 @@ public class Board {
             return squareNotation(enPassantSquare);
         }
     }
-
-
-
-
 }
