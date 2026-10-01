@@ -5,6 +5,10 @@ public class MoveGenerator
     {
         int[] moves = new int[256];
         int count = 0;
+        private static final int[] rookRow = {-1,1,0,0};
+        private static final int[] rookColumn = {0,0,-1,1};
+        private static final int[] bishopRow = {-1,-1,1,1};
+        private static final int[] bishopColumn = {-1,1,-1,1};
         for(int square = 0;square<64;square++)
         {
             int piece = board.squares[square];
@@ -75,6 +79,52 @@ public class MoveGenerator
                         count++;
                     }
                 }
+            }
+            if(pieceType ==Board.Rook)
+            {
+                count = sliders(board,square,rookRow,rookColumn,moves,count);
+            }
+            if(pieceType ==Board.Bishop)
+            {
+                count = sliders(board,square,bishopRow,bishopColumn,moves,count);
+            }
+            if(pieceType ==Board.Queen)
+            {
+                count = sliders(board,square,rookRow,rookColumn,moves,count);
+                count = sliders(board,square,bishopRow,bishopColumn,moves,count);
+            }
+            private static int sliders(Board board,int[] rowChanges,int[] columnChanges,int[] moves,int count)
+            {
+                int piece = board.squares[square];
+                int row = square/8;
+                int column = square%8;
+                for (int direction = 0;direction<rowChanges.length;direction++)
+                {
+                    int changedRow = row+rowChanges[direction];
+                    int changedColumn = column+columnChanges[direction];
+                    while(changedRow>0&&changedRow<7&&changedColumn>0&&changedColumn<7)
+                    {
+                        int changedSquare = changedRow*8+changedColumn;
+                        int changedPiece = board.squares[changedSquare];
+                        if(changedPiece == Board.EMPTY)
+                        {
+                            moves[count] = Move.bitpack(square,changedSquare, 0,false,false,false,false);
+                            count++
+                        }
+                        else{
+                            if(changedPiece*piece<0)
+                            {
+                                moves[count] = Move.bitpack(square,changedSquare, 0,true,false,false,false);
+                                count++;
+                            }
+                            break;
+                        }
+                        changedRow = changedRow+rowChanges[direction];
+                        changedColumn = changedColumn+columnChanges[direction];
+                    }
+
+                }
+                return count;
             }
         }
         return Arrays.copyOf(moves,count);
