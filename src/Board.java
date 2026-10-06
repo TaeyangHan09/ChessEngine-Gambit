@@ -10,6 +10,68 @@ public class Board {
     public boolean blackQueenside = false;
     public int enPassantSquare = -1;
     public static final String STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    private final int[] moveHistory = new int[1024];
+    private final int[] movedpieceHistory = new int[1024];
+    private final int[] capturedPieceHistory = new int[1024];
+    private final int[] enPassantHistory = new int[1024];
+    private int individualmoveCount = 0;
+    private int findCapturedSquare(int from,int to, boolean isEnPassant)
+    {
+        if(isEnPassant)
+        {
+            int startRow = from/8;
+            int changedColumn = to%8;
+            return startRow*8+changedColumn;
+        }
+        else
+        {
+            return to;
+        }
+    }
+    public void makeMove(int move)
+    {
+        int from = Move.unbitpackcurrentPosition(move);
+        int to = Move.unbitpackchangedPosition(move);
+        boolean isEnPassant = Move.unbitpackenPassant(move);
+        boolean isDoublePush = Move.unbitpackdoubleJump(move);
+        int piece = squares[from];
+        int capturedSquare=findCapturedSquare(from,to,isEnPassant);
+        int captured = squares[capturedSquare];
+        moveHistory[individualmoveCount] = move;
+        movedpieceHistory[individualmoveCount] = piece;
+        capturedPieceHistory[individualmoveCount] = captured;
+        enPassantHistory[individualmoveCount] = enPassantSquare;
+        individualmoveCount++;
+        squares[capturedSquare] = EMPTY;
+        squares[from] = EMPTY;
+        squares[to]=piece;
+        if(isDoublePush)
+        {
+           enPassantSquare = (from+to)/2;
+        }
+        else
+        {
+            enPassantSquare = -1;
+        }
+        whiteToMove =!whiteToMove;
+    }
+    public void unmakeMove()
+    {
+        individualmoveCount--;
+        int move = moveHistory[individualmoveCount];
+        int from = Move.unbitpackcurrentPosition(move);
+        int to = Move.unbitpackchangedPosition(move);
+        boolean isEnPassant = Move.unbitpackenPassant(move);
+        int capturedSquare = findCapturedSquare(from,to,isEnPassant);
+        whiteToMove =!whiteToMove;
+        squares[from] = movedpieceHistory[individualmoveCount];
+        squares[to] = EMPTY;
+        squares[capturedSquare] = capturedPieceHistory[individualmoveCount];
+        enPassantSquare = enPassantHistory[individualmoveCount];
+
+
+    }
+
     public static int pieceFromChar(char c)
     {
         int sign;

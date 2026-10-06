@@ -85,11 +85,12 @@ public class MoveGenerator
                     direction = -1;
                     startingRow = 6;
                 } else {
-                    direction = -1;
+                    direction = 1;
                     startingRow = 1;
                 }
                 int oneStep = row + direction;
-                if (oneStep >= 0 && oneStep <= 7) {
+                if (oneStep >= 0 && oneStep <= 7)
+                {
                     int changedoneStep = oneStep * 8 + column;
                     if (board.squares[changedoneStep] == Board.EMPTY) {
                         moves[count] = Move.bitpack(square, changedoneStep, 0, false, false, false, false);
@@ -114,8 +115,13 @@ public class MoveGenerator
                         if (capturedPiece * piece < 0) {
                             moves[count] = Move.bitpack(square, captureSquare, 0, true, false, false, false);
                             count++;
+                        } else if (captureSquare == board.enPassantSquare)
+                        {
+                            moves[count] = Move.bitpack(square,captureSquare,0,true,true,false,false);
+                            count++;
                         }
                     }
+
                 }
             }
             }
