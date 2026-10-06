@@ -14,7 +14,24 @@ public class Board {
     private final int[] movedpieceHistory = new int[1024];
     private final int[] capturedPieceHistory = new int[1024];
     private final int[] enPassantHistory = new int[1024];
+    private final int[] castlingHistory = new int[1024];
     private int individualmoveCount = 0;
+    private int castlingTracker()
+    {
+        int castleTracker = 0;
+        if(whiteKingside) castleTracker = castleTracker+1;
+        if(whiteQueenside) castleTracker = castleTracker+2;
+        if(blackKingside) castleTracker = castleTracker+4;
+        if(blackQueenside) castleTracker = castleTracker+8;
+        return castleTracker;
+    }
+    private void unpackcastlingTracker(int castleTracker)
+    {
+        whiteKingside = (castleTracker&1)!=0;
+        whiteQueenside = (castleTracker&2)!=0;
+        blackKingside = (castleTracker&4)!=0;
+        blackQueenside = (castleTracker&8)!=0;
+    }
     private int findCapturedSquare(int from,int to, boolean isEnPassant)
     {
         if(isEnPassant)
@@ -34,6 +51,7 @@ public class Board {
         int to = Move.unbitpackchangedPosition(move);
         boolean isEnPassant = Move.unbitpackenPassant(move);
         boolean isDoublePush = Move.unbitpackdoubleJump(move);
+        boolean isCastling = Move.unbitpackcastlingPosition(move);
         int piece = squares[from];
         int capturedSquare=findCapturedSquare(from,to,isEnPassant);
         int captured = squares[capturedSquare];
@@ -41,10 +59,34 @@ public class Board {
         movedpieceHistory[individualmoveCount] = piece;
         capturedPieceHistory[individualmoveCount] = captured;
         enPassantHistory[individualmoveCount] = enPassantSquare;
+        castlingHistory[individualmoveCount] = castlingTracker();
         individualmoveCount++;
         squares[capturedSquare] = EMPTY;
         squares[from] = EMPTY;
         squares[to]=piece;
+        if(isCastling)
+        {
+            if(to==62)
+            {
+                squares[63] = EMPTY;
+                squares[61] = Board.Rook;
+            }
+            else if(to==58)
+            {
+                squares[56]=EMPTY;
+                squares[59] = Board.Rook;
+            }
+            else if(to ==6)
+            {
+                squares[7] = EMPTY;
+                squares[5] = -Board.Rook;
+            }
+            else if(to ==2)
+            {
+                squares[0] = EMPTY;
+                squares[3] = -Board.Rook;
+            }
+        }
         if(isDoublePush)
         {
            enPassantSquare = (from+to)/2;
@@ -52,6 +94,30 @@ public class Board {
         else
         {
             enPassantSquare = -1;
+        }
+        if(from==60)
+        {
+            whiteKingside = false;whiteQueenside = false;
+        }
+        if(from == 4)
+        {
+            blackKingside = false;blackQueenside = false;
+        }
+        if(from == 63||to==63)
+        {
+            whiteKingside = false;
+        }
+        if(from == 56||to ==56)
+        {
+            whiteQueenside=false;
+        }
+        if(from == 7||to==7)
+        {
+            blackKingside = false;
+        }
+        if(from == 0||to ==0)
+        {
+            blackQueenside=false;
         }
         whiteToMove =!whiteToMove;
     }
@@ -62,12 +128,38 @@ public class Board {
         int from = Move.unbitpackcurrentPosition(move);
         int to = Move.unbitpackchangedPosition(move);
         boolean isEnPassant = Move.unbitpackenPassant(move);
+        boolean isCastling = Move.unbitpackcastlingPosition(move);
         int capturedSquare = findCapturedSquare(from,to,isEnPassant);
         whiteToMove =!whiteToMove;
         squares[from] = movedpieceHistory[individualmoveCount];
         squares[to] = EMPTY;
+        if(isCastling)
+        {
+            if(to==62)
+            {
+                squares[63] = Board.Rook;
+                squares[61] = EMPTY;
+            }
+            else if(to ==58)
+            {
+                squares[56] = Board.Rook;
+                squares[59] = EMPTY;
+            }
+            else if(to ==6)
+            {
+                squares[7] = -Board.Rook;
+                squares[5] = EMPTY;
+            }
+            else if(to ==2)
+            {
+                squares[0] = -Board.Rook;
+                squares[3] = EMPTY;
+            }
+
+        }
         squares[capturedSquare] = capturedPieceHistory[individualmoveCount];
         enPassantSquare = enPassantHistory[individualmoveCount];
+        unpackcastlingTracker(castlingHistory[individualmoveCount]);
 
 
     }

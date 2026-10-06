@@ -47,7 +47,8 @@ public class MoveGenerator
                 int column = square % 8;
                 int[] rowChanges = {-1, -1, -1, 0, 0, 1, 1, 1};
                 int[] columnChanges = {-1, 0, 1, -1, 1, -1, 0, 1};
-                for (int mightykingwalk = 0; mightykingwalk < 8; mightykingwalk++) {
+                for (int mightykingwalk = 0; mightykingwalk < 8; mightykingwalk++)
+                {
                     int changedRow = row + rowChanges[mightykingwalk];
                     int changedColumn = column + columnChanges[mightykingwalk];
                     if (changedRow < 0 || changedRow > 7 || changedColumn < 0 || changedColumn > 7) {
@@ -60,6 +61,42 @@ public class MoveGenerator
                         count++;
                     } else if (changedPiece * piece < 0) {
                         moves[count] = Move.bitpack(square, changedSquare, 0, true, false, false, false);
+                        count++;
+                    }
+                }
+                if(pieceIsWhite&&square==60&&board.whiteKingside)
+                {
+
+                    if(board.squares[61] == Board.EMPTY && board.squares[62] == Board.EMPTY &&board.squares[63] == Board.Rook)
+                    {
+                        moves[count] = Move.bitpack(60,62,0,false,false,false,true);
+                        count++;
+                    }
+                }
+                if(pieceIsWhite&&square==60&&board.whiteQueenside)
+                {
+
+                    if(board.squares[59] == Board.EMPTY &&board.squares[58]==Board.EMPTY&& board.squares[57] == Board.EMPTY &&board.squares[56] == Board.Rook)
+                    {
+                        moves[count] = Move.bitpack(60,58,0,false,false,false,true);
+                        count++;
+                    }
+                }
+                if(!pieceIsWhite&&square==4&&board.blackKingside)
+                {
+
+                    if(board.squares[5] == Board.EMPTY && board.squares[6] == Board.EMPTY &&board.squares[7] == -Board.Rook)
+                    {
+                        moves[count] = Move.bitpack(4,6,0,false,false,false,true);
+                        count++;
+                    }
+                }
+                if(!pieceIsWhite&&square==4&&board.blackQueenside)
+                {
+
+                    if(board.squares[3] == Board.EMPTY &&board.squares[2]==Board.EMPTY&& board.squares[1] == Board.EMPTY &&board.squares[0] == -Board.Rook)
+                    {
+                        moves[count] = Move.bitpack(4,2,0,false,false,false,true);
                         count++;
                     }
                 }
