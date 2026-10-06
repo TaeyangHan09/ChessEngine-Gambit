@@ -5,7 +5,7 @@ public class MoveGenerator
     private static final int[] rookColumn = {0,0,-1,1};
     private static final int[] bishopRow = {-1,-1,1,1};
     private static final int[] bishopColumn = {-1,1,-1,1};
-    public static int[] gernerateMove(Board board) {
+    public static int[] generateMove(Board board) {
         int[] moves = new int[256];
         int count = 0;
         for (int square = 0; square < 64; square++) {
@@ -81,20 +81,31 @@ public class MoveGenerator
                 int column = square % 8;
                 int direction;
                 int startingRow;
+                int promotionRow;
                 if (pieceIsWhite) {
                     direction = -1;
                     startingRow = 6;
+                    promotionRow=0;
                 } else {
                     direction = 1;
                     startingRow = 1;
+                    promotionRow = 7;
                 }
                 int oneStep = row + direction;
                 if (oneStep >= 0 && oneStep <= 7)
                 {
                     int changedoneStep = oneStep * 8 + column;
-                    if (board.squares[changedoneStep] == Board.EMPTY) {
-                        moves[count] = Move.bitpack(square, changedoneStep, 0, false, false, false, false);
-                        count++;
+                    if (board.squares[changedoneStep] == Board.EMPTY)
+                    {
+                        if(oneStep==promotionRow)
+                        {
+                            count = addPromotions(moves,count,square,changedoneStep,false);
+                        }
+                        else
+                        {
+                            moves[count] = Move.bitpack(square,changedoneStep,0,false,false,false,false);
+                            count++;
+                        }
                         if (row == startingRow) {
                             int twoSteps = (row + 2 * direction) * 8 + column;
                             if (board.squares[twoSteps] == Board.EMPTY) {
@@ -112,10 +123,19 @@ public class MoveGenerator
                         }
                         int captureSquare = captureRow * 8 + captureColumn;
                         int capturedPiece = board.squares[captureSquare];
-                        if (capturedPiece * piece < 0) {
-                            moves[count] = Move.bitpack(square, captureSquare, 0, true, false, false, false);
-                            count++;
-                        } else if (captureSquare == board.enPassantSquare)
+                        if (capturedPiece * piece < 0)
+                        {
+                            if(oneStep ==promotionRow)
+                            {
+                                count = addPromotions(moves,count,square,captureSquare,true);
+                            }
+                            else
+                            {
+                                moves[count] = Move.bitpack(square,captureSquare,0,true,false,false,false);
+                                count ++;
+                            }
+                        }
+                        else if (captureSquare == board.enPassantSquare)
                         {
                             moves[count] = Move.bitpack(square,captureSquare,0,true,true,false,false);
                             count++;
@@ -154,6 +174,16 @@ public class MoveGenerator
                         changedColumn = changedColumn + columnChanges[direction];
                     }
 
+                }
+                return count;
+            }
+            private static int addPromotions(int[] moves,int count, int from, int to, boolean capture)
+            {
+                int[] promotionPieces = {Board.Knight,Board.Bishop,Board.Rook,Board.Queen};
+                for(int i=0;i<4;i++)
+                {
+                    moves[count] = Move.bitpack(from,to,promotionPieces[i],capture,false,false,false);
+                    count++;
                 }
                 return count;
             }
