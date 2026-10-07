@@ -224,5 +224,163 @@ public class MoveGenerator
                 }
                 return count;
             }
+            public static int findKing(Board board, boolean white)
+            {
+                int king;
+                if(white)
+                {
+                    king=Board.King;
+                }
+                else
+                {
+                    king=-Board.King;
+                }
+                for(int square = 0;square<64;square++)
+                {
+                    if(board.squares[square]==king)
+                    {
+                        return square;
+                    }
+                }
+                return -1;
+            }
+            public static boolean isSquareAttacked(Board board,int square,boolean byWhite)
+            {
+                int row = square/8;
+                int column = square%8;
+                int attackerRow;
+                int attackingPawn;
+                if(byWhite)
+                {
+                    attackerRow = row+1;
+                    attackingPawn = Board.Pawn;
+                }
+                else
+                {
+                    attackerRow = row-1;
+                    attackingPawn = -Board.Pawn;
+                }
+                int[] columnVariation = {-1,1};
+                for(int i=0;i<2;i++)
+                {
+                    int attackColumn = column +columnVariation[i];
+                    if(attackColumn<0||attackColumn>7||attackerRow<0||attackerRow>7)
+                    {
+                        continue;
+                    }
+                    if(board.squares[attackerRow*8+attackColumn]==attackingPawn)
+                    {
+                        return true;
+                    }
+                }
+                int attackingKnight;
+                if(byWhite)
+                {
+                    attackingKnight = Board.Knight;
+                }
+                else
+                {
+                    attackingKnight = -Board.Knight;
+                }
+                int[]knightRow = {-2,-2,-1,-1,1,1,2,2};
+                int[]knightColumn = {-1,1,-2,2,-2,2,-1,1};
+                for(int i=0;i<8;i++)
+                {
+                    int jumpRow = row+knightRow[i];
+                    int jumpColumn = column+knightColumn[i];
+                    if(jumpRow<0||jumpRow>7||jumpColumn<0||jumpColumn>7)
+                    {
+                        continue;
+                    }
+                    if(board.squares[jumpRow*8+jumpColumn]==attackingKnight)
+                    {
+                        return true;
+                    }
+                }
+                int attackingKing;
+                if(byWhite)
+                {
+                    attackingKing = Board.King;
+                }
+                else
+                {
+                    attackingKing = -Board.King;
+                }
+                int[]kingRow = {-1,-1,-1,0,0,1,1,1};
+                int[]kingColumn = {-1,0,1,-1,1,-1,0,1};
+                for(int i = 0;i<8;i++)
+                {
+                    int stepRow = row+kingRow[i];
+                    int stepColumn = column +kingColumn[i];
+                    if(stepRow<0||stepRow>7||stepColumn<0||stepColumn>7)
+                    {
+                        continue;
+                    }
+                    if(board.squares[stepRow*8+stepColumn] ==attackingKing)
+                    {
+                        return true;
+                    }
+                }
+                int attackingRook;
+                int attackingQueen;
+                if(byWhite)
+                {
+                    attackingRook = Board.Rook;
+                    attackingQueen = Board.Queen;
+                }
+                else
+                {
+                    attackingRook =-Board.Rook;
+                    attackingQueen =-Board.Queen;
+                }
+                for(int direction=0;direction<4;direction++)
+                {
+                    int slideRow = row+rookRow[direction];
+                    int slideColumn=column+rookColumn[direction];
+                    while(slideRow>=0&&slideRow<=7&&slideColumn>=0&&slideColumn<=7)
+                    {
+                        int changedPiece = board.squares[slideRow*8+slideColumn];
+                        if(changedPiece!=Board.EMPTY)
+                        {
+                            if(changedPiece ==attackingRook||changedPiece==attackingQueen)
+                            {
+                                return true;
+                            }
+                            break;
+                        }
+                        slideRow = slideRow+rookRow[direction];
+                        slideColumn = slideColumn+rookColumn[direction];
+                    }
+                }
+                int attackingbishopPiece;
+                if(byWhite)
+                {
+                    attackingbishopPiece = Board.Bishop;
+                }
+                else
+                {
+                    attackingbishopPiece = -Board.Bishop;
+                }
+                for(int sniperDirection = 0;sniperDirection<4;sniperDirection++)
+                {
+                    int sniperRow = row+bishopRow[sniperDirection];
+                    int sniperColumn = column+bishopColumn[sniperDirection];
+                    while(sniperRow>=0&&sniperRow<=7&&sniperColumn>=0&&sniperColumn<=7)
+                    {
+                        int changedPiece = board.squares[sniperRow*8+sniperColumn];
+                        if(changedPiece!=Board.EMPTY)
+                        {
+                            if(changedPiece==attackingbishopPiece||changedPiece==attackingQueen)
+                            {
+                                return true;
+                            }
+                            break;
+                        }
+                        sniperRow = sniperRow +bishopRow[sniperDirection];
+                        sniperColumn = sniperColumn+bishopColumn[sniperDirection];
+                    }
+                }
+
+            }
 
 }

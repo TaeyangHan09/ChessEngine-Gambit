@@ -63,7 +63,17 @@ public class Board {
         individualmoveCount++;
         squares[capturedSquare] = EMPTY;
         squares[from] = EMPTY;
-        squares[to]=piece;
+        int promo = Move.unbitpackpromotionPosition(move);
+        if(promo!=0)
+        {
+            if(piece>0) squares[to] = promo;
+            else squares[to] = -promo;
+        }
+        else
+        {
+            squares[to] = piece;
+        }
+
         if(isCastling)
         {
             if(to==62)
