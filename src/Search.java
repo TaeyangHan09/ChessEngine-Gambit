@@ -1,7 +1,7 @@
 public class Search
 {
     private static final int checkmate = 100000;
-    public static int negamax(Board board, int depth, int individualMoveCount)
+    public static int negamaxWithoutPruning(Board board, int depth, int individualMoveCount)
     {
         int[] moves = MoveGenerator.generateLegalMoves(board);
         if(moves.length==0)
@@ -20,7 +20,7 @@ public class Search
         for(int move:moves)
         {
             board.makeMove(move);
-            int score = -negamax(board,depth-1,individualMoveCount+1);
+            int score = -negamaxWithoutPruning(board,depth-1,individualMoveCount+1);
             board.unmakeMove();
             if(score>best)
             {
@@ -33,17 +33,46 @@ public class Search
     {
         int[] moves = MoveGenerator.generateLegalMoves(board);
         int bestMove = 0;
-        int best = -checkmate-1;
+        int alpha =-checkmate-1;
+        int beta = checkmate+1;
         for(int move:moves)
         {
-            int score = -negamax(board,depth -1,1);
+            board.makeMove(move);
+            int score = -negamaxWithoutPruning(board,depth -1,1);
             board.unmakeMove();
-            if (score>best)
+            if (score>alpha)
             {
-                best =score;
+                alpha =score;
                 bestMove = move;
             }
         }
         return bestMove;
+    }
+    public static int negamax(Board board,int depth,int individualMovementCount,int alpha,int beta)
+    {
+        int[] moves = MoveGenerator.generateLegalMoves(board);
+        if(moves.length==0)
+        {
+            if(MoveGenerator.isKingAttacked(board, board.whiteToMove))
+            {
+                return -checkmate+individualMovementCount;
+            }
+            return 0;
+        }
+        if(depth==0)
+        {
+            return Evaluator.evaluate(board);
+        }
+        for(int move:moves)
+        {
+            board.makeMove(move);
+            int score = -negamax(board,depth-1,individualMovementCount+1,-beta,-alpha);
+            board.unmakeMove();
+            if(score>=beta)
+            {
+                return beta;
+            }
+        }
+        return alpha;
     }
 }
