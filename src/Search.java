@@ -1,6 +1,6 @@
 public class Search
 {
-    private static final int checkmate = 999999;
+    private static final int checkmate = 100000;
     public static int negamax(Board board, int depth, int individualMoveCount)
     {
         int[] moves = MoveGenerator.generateLegalMoves(board);
