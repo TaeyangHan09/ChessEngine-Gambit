@@ -5,6 +5,44 @@ public class MoveGenerator
     private static final int[] rookColumn = {0,0,-1,1};
     private static final int[] bishopRow = {-1,-1,1,1};
     private static final int[] bishopColumn = {-1,1,-1,1};
+    public static int[] generateLegalMoves(Board board)
+    {
+        int[] pseudo = generateMove(board);
+        int[] legal = new int[pseudo.length];
+        int n =0;
+        boolean mover = board.whiteToMove;
+        for(int move:pseudo)
+        {
+            board.makeMove(move);
+            if(!isKingAttacked(board,mover))
+            {
+                legal[n++] = move;
+            }
+            board.unmakeMove();
+        }
+        return Arrays.copyOf(legal,n);
+    }
+    public static long perft(Board board,int depth)
+    {
+        if(depth==0)
+        {
+            return 1;
+        }
+        int[] moves = MoveGenerator.generateLegalMoves(board);
+        if(depth==1)
+        {
+            return moves.length;
+        }
+        long totalPositions =0;
+        for(int i:moves)
+        {
+            board.makeMove(i);
+            totalPositions+=perft(board,depth-1);
+            board.unmakeMove();
+        }
+        return totalPositions;
+
+    }
     public static int[] generateMove(Board board) {
         int[] moves = new int[256];
         int count = 0;
@@ -380,7 +418,16 @@ public class MoveGenerator
                         sniperColumn = sniperColumn+bishopColumn[sniperDirection];
                     }
                 }
-
+                return false;
+            }
+            public static boolean isKingAttacked(Board board,boolean white)
+            {
+                int mightykingSquare=findKing(board,white);
+                if(mightykingSquare==-1)
+                {
+                    return false;
+                }
+                return isSquareAttacked(board,mightykingSquare,!white);
             }
 
 }
