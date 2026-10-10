@@ -84,7 +84,7 @@ public class MoveGenerator
                 if(pieceIsWhite&&square==60&&board.whiteKingside)
                 {
 
-                    if(board.squares[61] == Board.EMPTY && board.squares[62] == Board.EMPTY &&board.squares[63] == Board.Rook)
+                    if(board.squares[61] == Board.EMPTY && board.squares[62] == Board.EMPTY &&board.squares[63] == Board.Rook&&!isSquareAttacked(board,60,false)&&!isSquareAttacked(board,61,false))
                     {
                         moves[count] = Move.bitpack(60,62,0,false,false,false,true);
                         count++;
@@ -93,7 +93,7 @@ public class MoveGenerator
                 if(pieceIsWhite&&square==60&&board.whiteQueenside)
                 {
 
-                    if(board.squares[59] == Board.EMPTY &&board.squares[58]==Board.EMPTY&& board.squares[57] == Board.EMPTY &&board.squares[56] == Board.Rook)
+                    if(board.squares[59] == Board.EMPTY &&board.squares[58]==Board.EMPTY&& board.squares[57] == Board.EMPTY &&board.squares[56] == Board.Rook&&!isSquareAttacked(board,60,false)&&!isSquareAttacked(board,59,false))
                     {
                         moves[count] = Move.bitpack(60,58,0,false,false,false,true);
                         count++;
@@ -102,7 +102,7 @@ public class MoveGenerator
                 if(!pieceIsWhite&&square==4&&board.blackKingside)
                 {
 
-                    if(board.squares[5] == Board.EMPTY && board.squares[6] == Board.EMPTY &&board.squares[7] == -Board.Rook)
+                    if(board.squares[5] == Board.EMPTY && board.squares[6] == Board.EMPTY &&board.squares[7] == -Board.Rook&&!isSquareAttacked(board,4,true)&&!isSquareAttacked(board,5,true))
                     {
                         moves[count] = Move.bitpack(4,6,0,false,false,false,true);
                         count++;
@@ -111,7 +111,7 @@ public class MoveGenerator
                 if(!pieceIsWhite&&square==4&&board.blackQueenside)
                 {
 
-                    if(board.squares[3] == Board.EMPTY &&board.squares[2]==Board.EMPTY&& board.squares[1] == Board.EMPTY &&board.squares[0] == -Board.Rook)
+                    if(board.squares[3] == Board.EMPTY &&board.squares[2]==Board.EMPTY&& board.squares[1] == Board.EMPTY &&board.squares[0] == -Board.Rook&&!isSquareAttacked(board,4,true)&&!isSquareAttacked(board,3,true))
                     {
                         moves[count] = Move.bitpack(4,2,0,false,false,false,true);
                         count++;
