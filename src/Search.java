@@ -75,4 +75,51 @@ public class Search
         }
         return alpha;
     }
+    private static final int[] value = {0,100,320,330,500,900,20000};
+    private static int scoreMove(Board board,int move)
+    {
+        int score=0;
+        int from=Move.unbitpackcurrentPosition(move);
+        int to=Move.unbitpackchangedPosition(move);
+        if(Move.unbitpackcapturePosition(move))
+        {
+            int victim =Math.abs(board.squares[to]);
+            if(Move.unbitpackenPassant(move))
+            {
+                victim = Board.Pawn;
+            }
+            int attacker = Math.abs(board.squares[from]);
+            score+=10000+value[victim]*10-value[attacker]/10;
+        }
+        int promo = Move.unbitpackpromotionPosition(move);
+        if(promo!=0)
+        {
+            score+=9000+value[promo];
+        }
+        return score;
+    }
+    private static int[] orderMoves(Board board,int[] moves)
+    {
+        int n=moves.length;
+        int[] scores=new int[n];
+        for(int i=0; i<n;i++)
+        {
+            scores[i] = scoreMove(board,moves[i]);
+        }
+        for(int i=1;i<n;i++)
+        {
+            int m = moves[i];
+            int s =scores[i];
+            int j=i-1;
+            while(j>=0&&scores[j]<s)
+            {
+                moves[j+1]=moves[j];
+                scores[j+1]=scores[j];
+                j--;
+            }
+            moves[j+1]=m;
+            scores[j+1]=s;
+        }
+        return moves;
+    }
 }
