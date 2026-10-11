@@ -15,6 +15,7 @@ public class Board {
     private final int[] capturedPieceHistory = new int[1024];
     private final int[] enPassantHistory = new int[1024];
     private final int[] castlingHistory = new int[1024];
+    private final int[] halfmoveHistory = new int[1024];
     private int individualmoveCount = 0;
     private int castlingTracker()
     {
@@ -60,6 +61,7 @@ public class Board {
         capturedPieceHistory[individualmoveCount] = captured;
         enPassantHistory[individualmoveCount] = enPassantSquare;
         castlingHistory[individualmoveCount] = castlingTracker();
+        halfmoveHistory[individualmoveCount]=halfmoveClock;
         individualmoveCount++;
         squares[capturedSquare] = EMPTY;
         squares[from] = EMPTY;
@@ -129,6 +131,18 @@ public class Board {
         {
             blackQueenside=false;
         }
+        if(Math.abs(piece)==Pawn||captured!=EMPTY)
+        {
+            halfmoveClock=0;
+        }
+        else
+        {
+            halfmoveClock++;
+        }
+        if(!whiteToMove)
+        {
+            fullmoveNumber++;
+        }
         whiteToMove =!whiteToMove;
     }
     public void unmakeMove()
@@ -141,6 +155,10 @@ public class Board {
         boolean isCastling = Move.unbitpackcastlingPosition(move);
         int capturedSquare = findCapturedSquare(from,to,isEnPassant);
         whiteToMove =!whiteToMove;
+        if(!whiteToMove)
+        {
+            fullmoveNumber--;
+        }
         squares[from] = movedpieceHistory[individualmoveCount];
         squares[to] = EMPTY;
         if(isCastling)
@@ -169,6 +187,7 @@ public class Board {
         }
         squares[capturedSquare] = capturedPieceHistory[individualmoveCount];
         enPassantSquare = enPassantHistory[individualmoveCount];
+        halfmoveClock = halfmoveHistory[individualmoveCount];
         unpackcastlingTracker(castlingHistory[individualmoveCount]);
 
 

@@ -65,9 +65,13 @@ public class Search
             }
             return 0;
         }
+        if(board.halfmoveClock>=0)
+        {
+            return 0;
+        }
         if(depth==0)
         {
-            return Evaluator.evaluate(board);
+            return quiescence(board,alpha,beta);
         }
         moves=orderMoves(board,moves);
         for(int move:moves)
@@ -191,6 +195,12 @@ public class Search
     }
     private static int quiescence(Board board,int alpha,int beta)
             {
+                positionSeen++;
+                peekAtClock();
+                if(timesUp)
+                {
+                    return 0;
+                }
                 int currentEval = Evaluator.evaluate(board);
                 if(currentEval>=beta)
                 {
@@ -200,6 +210,30 @@ public class Search
                 {
                     alpha = currentEval;
                 }
+                int[] moves = MoveGenerator.generateLegalMoves(board);
+                moves = orderMoves(board,moves);
+                for(int move:moves)
+                {
+                    if(!Move.unbitpackcapturePosition(move))
+                    {
+                        continue;
+                    }
+                    board.makeMove(move);
+                    int score = -quiescence(board,-beta,-alpha);
+                    board.unmakeMove();
+                    if(timesUp)
+                    {
+                        return 0;
+                    }
+                    if(score>=beta)
+                    {
+                        return beta;
+                    }
+                    if(score>alpha)
+                    {
+                        alpha=score;
+                    }
+                }
                 return alpha;
-            })
+            }
 }
