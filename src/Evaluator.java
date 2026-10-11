@@ -70,6 +70,31 @@ public class Evaluator
         20, 20,  0,  0,  0,  0, 20, 20,
         20, 30, 10,  0,  0, 10, 30, 20
     };
+    private static int [] tableAll(int pieceType)
+    {
+        if(pieceType==Board.Pawn)
+        {
+            return pawnValueTable;
+        }
+        if(pieceType==Board.Knight)
+        {
+            return knightValueTable;
+        }
+        if(pieceType==Board.Bishop)
+        {
+            return bishopValueTable;
+        }
+        if(pieceType==Board.Rook)
+        {
+            return rookValueTable;
+        }
+        if(pieceType==Board.Queen)
+        {
+            return queenValueTable;
+        }
+        return kingValueTable;
+
+    }
     private static final int[] value = {0,100,320,330,500,900,0};
     public static int evaluate(Board board)
     {
@@ -82,13 +107,14 @@ public class Evaluator
                 continue;
             }
             int absolutevalue = value[Math.abs(piece)];
+            int[] specificTable = tableAll(absolutevalue);
             if(piece>0)
             {
-                score+=absolutevalue;
+                score+=value[absolutevalue]+specificTable[square];
             }
             else
             {
-                score-=absolutevalue;
+                score-=value[absolutevalue]+specificTable[square^56];
             }
         }
         if(board.whiteToMove)
