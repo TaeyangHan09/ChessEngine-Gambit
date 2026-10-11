@@ -50,6 +50,12 @@ public class Search
     }
     public static int negamax(Board board,int depth,int individualMovementCount,int alpha,int beta)
     {
+        positionSeen++;
+        peekAtClock();
+        if(timesUp)
+        {
+            return 0;
+        }
         int[] moves = MoveGenerator.generateLegalMoves(board);
         if(moves.length==0)
         {
@@ -63,14 +69,23 @@ public class Search
         {
             return Evaluator.evaluate(board);
         }
+        moves=orderMoves(board,moves);
         for(int move:moves)
         {
             board.makeMove(move);
             int score = -negamax(board,depth-1,individualMovementCount+1,-beta,-alpha);
             board.unmakeMove();
+            if(timesUp)
+            {
+                return 0;
+            }
             if(score>=beta)
             {
                 return beta;
+            }
+            if(score>alpha)
+            {
+                alpha=score;
             }
         }
         return alpha;
@@ -121,5 +136,57 @@ public class Search
             scores[j+1]=s;
         }
         return moves;
+    }
+    private static long doomsdayClock;
+    private static boolean timesUp;
+    private static long positionSeen;
+    private static void peekAtClock()
+    {
+        if((positionSeen&2047)==0&&System.currentTimeMillis()>=doomsdayClock)
+        {
+            timesUp=true;
+        }
+    }
+    public static int search(Board board,int maxDepth, long timeMs) {
+        doomsdayClock = System.currentTimeMillis() + timeMs;
+        timesUp = false;
+        positionSeen = 0;
+        int[] rootMoves = MoveGenerator.generateLegalMoves(board);
+        if (rootMoves.length == 0) {
+            return 0;
+        }
+        rootMoves = orderMoves(board, rootMoves);
+        int bestMove = rootMoves[0];
+        for (int depth = 1; depth < maxDepth; depth++) {
+            int alpha = -checkmate - 1;
+            int beta = checkmate + 1;
+            int sofarBest = 0;
+            for (int move : rootMoves) {
+                board.makeMove(move);
+                int score = -negamax(board, depth - 1, 1, -beta, -alpha);
+                board.unmakeMove();
+                if (timesUp) {
+                    break;
+                }
+                if (score > alpha) {
+                    alpha = score;
+                    sofarBest = move;
+                }
+            }
+            if (timesUp) {
+                break;
+            }
+            bestMove = sofarBest;
+            for (int i = 0; i < rootMoves.length; i++) {
+                if (rootMoves[i] == bestMove) {
+                    for (int j = i; j > 0; j--) {
+                        rootMoves[j] = rootMoves[j - 1];
+                    }
+                    rootMoves[0] = bestMove;
+                    break;
+                }
+            }
+        }
+        return bestMove;
     }
 }
