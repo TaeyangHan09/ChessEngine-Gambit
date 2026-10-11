@@ -106,7 +106,7 @@ public class Evaluator
             {
                 continue;
             }
-            int absolutevalue = value[Math.abs(piece)];
+            int absolutevalue = Math.abs(piece);
             int[] specificTable = tableAll(absolutevalue);
             if(piece>0)
             {

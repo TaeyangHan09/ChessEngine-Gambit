@@ -189,4 +189,17 @@ public class Search
         }
         return bestMove;
     }
+    private static int quiescence(Board board,int alpha,int beta)
+            {
+                int currentEval = Evaluator.evaluate(board);
+                if(currentEval>=beta)
+                {
+                    return beta;
+                }
+                if(currentEval>alpha)
+                {
+                    alpha = currentEval;
+                }
+                return alpha;
+            })
 }
