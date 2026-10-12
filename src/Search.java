@@ -73,6 +73,10 @@ public class Search
         {
             return 0;
         }
+        if(MoveGenerator.isKingAttacked(board,board.whiteToMove))
+        {
+            depth++;
+        }
         if(depth==0)
         {
             return quiescence(board,alpha,beta);
