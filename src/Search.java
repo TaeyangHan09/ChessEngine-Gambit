@@ -65,7 +65,11 @@ public class Search
             }
             return 0;
         }
-        if(board.halfmoveClock>=0)
+        if(board.halfmoveClock>=100)
+        {
+            return 0;
+        }
+        if(board.isRepetition())
         {
             return 0;
         }
@@ -141,9 +145,9 @@ public class Search
         }
         return moves;
     }
-    private static long doomsdayClock;
-    private static boolean timesUp;
-    private static long positionSeen;
+    private static long doomsdayClock = Long.MAX_VALUE;
+    private static boolean timesUp = false;
+    private static long positionSeen = 0;
     private static void peekAtClock()
     {
         if((positionSeen&2047)==0&&System.currentTimeMillis()>=doomsdayClock)

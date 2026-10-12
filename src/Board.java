@@ -9,6 +9,7 @@ public class Board {
     public boolean blackKingside = false;
     public boolean blackQueenside = false;
     public int enPassantSquare = -1;
+    public long hash;
     public static final String STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     private final int[] moveHistory = new int[1024];
     private final int[] movedpieceHistory = new int[1024];
@@ -16,6 +17,7 @@ public class Board {
     private final int[] enPassantHistory = new int[1024];
     private final int[] castlingHistory = new int[1024];
     private final int[] halfmoveHistory = new int[1024];
+    private final long[] hashHistory = new long[1024];
     private int individualmoveCount = 0;
     private int castlingTracker()
     {
@@ -25,6 +27,44 @@ public class Board {
         if(blackKingside) castleTracker = castleTracker+4;
         if(blackQueenside) castleTracker = castleTracker+8;
         return castleTracker;
+    }
+    public long computeHash()
+    {
+        long hash = 0;
+        for(int square=0;square<64;square++)
+        {
+            int piece= squares[square];
+            if(piece!=EMPTY)
+            {
+                hash^=ZobristHash.pieceKeys[piece+6][square];
+            }
+        }
+        if(!whiteToMove)
+        {
+            hash^=ZobristHash.sideKey;
+        }
+        hash^=ZobristHash.castlingkeys[castlingTracker()];
+        if(enPassantSquare==-1)
+        {
+            hash^=ZobristHash.enPassantKeys[64];
+        }
+        else
+        {
+            hash^=ZobristHash.enPassantKeys[enPassantSquare];
+        }
+        return hash;
+    }
+    public boolean isRepetition()
+    {
+        int limit=Math.max(0,individualmoveCount-halfmoveClock);
+        for(int i=individualmoveCount-2;i>=limit;i-=2)
+        {
+            if(hashHistory[i]==hash)
+            {
+                return true;
+            }
+        }
+        return false;
     }
     private void unpackcastlingTracker(int castleTracker)
     {
@@ -62,6 +102,7 @@ public class Board {
         enPassantHistory[individualmoveCount] = enPassantSquare;
         castlingHistory[individualmoveCount] = castlingTracker();
         halfmoveHistory[individualmoveCount]=halfmoveClock;
+        hashHistory[individualmoveCount] = hash;
         individualmoveCount++;
         squares[capturedSquare] = EMPTY;
         squares[from] = EMPTY;
@@ -144,6 +185,7 @@ public class Board {
             fullmoveNumber++;
         }
         whiteToMove =!whiteToMove;
+        hash = computeHash();
     }
     public void unmakeMove()
     {
@@ -188,6 +230,7 @@ public class Board {
         squares[capturedSquare] = capturedPieceHistory[individualmoveCount];
         enPassantSquare = enPassantHistory[individualmoveCount];
         halfmoveClock = halfmoveHistory[individualmoveCount];
+        hash=hashHistory[individualmoveCount];
         unpackcastlingTracker(castlingHistory[individualmoveCount]);
 
 
@@ -283,6 +326,7 @@ public class Board {
         {
             board.fullmoveNumber = Integer.parseInt(parts[5]);
         }
+        board.hash=board.computeHash();
         return board;
     }
     private void readPieces(String boardText)
