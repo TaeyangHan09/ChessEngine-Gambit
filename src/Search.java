@@ -81,7 +81,43 @@ public class Search
         {
             return quiescence(board,alpha,beta);
         }
+        int originalAlpha = alpha;
+        int transpositionTableIndex = TranspositionTable.find(board.hash);
+        if(useTable&&transpositionTableIndex!=-1&&TranspositionTable.depthAt(transpositionTableIndex)>=depth)
+        {
+            int transpositionTableScore = TranspositionTable.scoreAt(transpositionTableIndex);
+            int transpositionTableFlag = TranspositionTable.flagAt(transpositionTableIndex);
+            if(transpositionTableFlag ==TranspositionTable.exact)
+            {
+                return transpositionTableScore;
+            }
+            if(transpositionTableFlag==TranspositionTable.lower&&transpositionTableScore>=beta)
+            {
+                return transpositionTableScore;
+            }
+            if(transpositionTableFlag==TranspositionTable.upper&&transpositionTableScore<=alpha)
+            {
+                return transpositionTableScore;
+            }
+        }
         moves=orderMoves(board,moves);
+        if(useTable&&transpositionTableIndex!=-1)
+        {
+            int tableMove= TranspositionTable.moveAt((transpositionTableIndex));
+            for(int i=0;i<moves.length;i++)
+            {
+                if(moves[i]==tableMove)
+                {
+                    for(int j=i;j>0;j--)
+                    {
+                        moves[j]=moves[j-1];
+                    }
+                    moves[0]=tableMove;
+                    break;
+                }
+            }
+        }
+        int bestMove = 0;
         for(int move:moves)
         {
             board.makeMove(move);
@@ -93,13 +129,25 @@ public class Search
             }
             if(score>=beta)
             {
+                TranspositionTable.store(board.hash,depth,beta,TranspositionTable.lower,move);
                 return beta;
             }
             if(score>alpha)
             {
                 alpha=score;
+                bestMove=move;
             }
         }
+        int flag;
+        if(alpha>originalAlpha)
+        {
+            flag=TranspositionTable.exact;
+        }
+        else
+        {
+            flag=TranspositionTable.upper;
+        }
+        TranspositionTable.store(board.hash,depth,alpha,flag,bestMove);
         return alpha;
     }
     private static final int[] value = {0,100,320,330,500,900,20000};
@@ -152,6 +200,7 @@ public class Search
     private static long doomsdayClock = Long.MAX_VALUE;
     private static boolean timesUp = false;
     private static long positionSeen = 0;
+    private static boolean useTable=true;
     private static void peekAtClock()
     {
         if((positionSeen&2047)==0&&System.currentTimeMillis()>=doomsdayClock)
@@ -169,7 +218,7 @@ public class Search
         }
         rootMoves = orderMoves(board, rootMoves);
         int bestMove = rootMoves[0];
-        for (int depth = 1; depth < maxDepth; depth++) {
+        for (int depth = 1; depth <= maxDepth; depth++) {
             int alpha = -checkmate - 1;
             int beta = checkmate + 1;
             int sofarBest = 0;
@@ -189,6 +238,7 @@ public class Search
                 break;
             }
             bestMove = sofarBest;
+            System.out.println("info depth "+depth+"score cp "+alpha+"nodes "+positionSeen);
             for (int i = 0; i < rootMoves.length; i++) {
                 if (rootMoves[i] == bestMove) {
                     for (int j = i; j > 0; j--) {
@@ -202,46 +252,70 @@ public class Search
         return bestMove;
     }
     private static int quiescence(Board board,int alpha,int beta)
+    {
+        positionSeen++;
+        peekAtClock();
+        if(timesUp)
+        {
+            return 0;
+        }
+        int currentEval = Evaluator.evaluate(board);
+        if(currentEval>=beta)
+        {
+            return beta;
+        }
+        if(currentEval>alpha)
+        {
+            alpha = currentEval;
+        }
+        int[] moves = MoveGenerator.generateLegalMoves(board);
+        moves = orderMoves(board,moves);
+        for(int move:moves)
+        {
+            if(!Move.unbitpackcapturePosition(move))
             {
-                positionSeen++;
-                peekAtClock();
-                if(timesUp)
-                {
-                    return 0;
-                }
-                int currentEval = Evaluator.evaluate(board);
-                if(currentEval>=beta)
-                {
-                    return beta;
-                }
-                if(currentEval>alpha)
-                {
-                    alpha = currentEval;
-                }
-                int[] moves = MoveGenerator.generateLegalMoves(board);
-                moves = orderMoves(board,moves);
-                for(int move:moves)
-                {
-                    if(!Move.unbitpackcapturePosition(move))
-                    {
-                        continue;
-                    }
-                    board.makeMove(move);
-                    int score = -quiescence(board,-beta,-alpha);
-                    board.unmakeMove();
-                    if(timesUp)
-                    {
-                        return 0;
-                    }
-                    if(score>=beta)
-                    {
-                        return beta;
-                    }
-                    if(score>alpha)
-                    {
-                        alpha=score;
-                    }
-                }
-                return alpha;
+                continue;
             }
+            board.makeMove(move);
+            int score = -quiescence(board,-beta,-alpha);
+            board.unmakeMove();
+            if(timesUp)
+            {
+                return 0;
+            }
+            if(score>=beta)
+            {
+                return beta;
+            }
+            if(score>alpha)
+            {
+                alpha=score;
+            }
+        }
+        return alpha;
+    }
+    private static int scoreToTable(int score,int individualmovementcount)
+    {
+        if(score>checkmate-1000)
+        {
+            return score+individualmovementcount;
+        }
+        if(score<-checkmate+1000)
+        {
+            return score-individualmovementcount;
+        }
+        return score;
+    }
+    private static int scorefromTable(int score,int individualmovementcount)
+    {
+        if(score>checkmate-1000)
+        {
+            return  score-individualmovementcount;
+        }
+        if(score<-checkmate+1000)
+        {
+            return score+individualmovementcount;
+        }
+        return score;
+    }
 }
