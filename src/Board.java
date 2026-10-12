@@ -264,6 +264,27 @@ public class Board {
                 throw new IllegalArgumentException("Unknown piece: "+c);
         }
     }
+    public void makeNullMove()
+    {
+        moveHistory[individualmoveCount] = 0;
+        enPassantHistory[individualmoveCount] = enPassantSquare;
+        castlingHistory[individualmoveCount] = castlingTracker();
+        halfmoveHistory[individualmoveCount]=halfmoveClock;
+        hashHistory[individualmoveCount] = hash;
+        individualmoveCount++;
+        enPassantSquare=-1;
+        halfmoveClock++;
+        whiteToMove=!whiteToMove;
+        hash=computeHash();
+    }
+    public void unmakeNullMove()
+    {
+        individualmoveCount--;
+        whiteToMove=!whiteToMove;
+        enPassantSquare=enPassantHistory[individualmoveCount];
+        halfmoveClock = halfmoveHistory[individualmoveCount];
+        hash = hashHistory[individualmoveCount];
+    }
     public static char pieceToCHar(int piece)
     {
         int pieceType = Math.abs(piece);

@@ -28,6 +28,17 @@ public class TranspositionTable
         }
         return -1;
     }
+    public static void clear()
+    {
+        for(int i=0;i<size;i++)
+        {
+            keys[i] = 0;
+            depths[i]=0;
+            scores[i]=0;
+            flags[i]=0;
+            moves[i]=0;
+        }
+    }
     public static int depthAt(int index)
     {
         return depths[index];

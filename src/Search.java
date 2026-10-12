@@ -48,7 +48,7 @@ public class Search
         }
         return bestMove;
     }
-    public static int negamax(Board board,int depth,int individualMovementCount,int alpha,int beta)
+    public static int negamax(Board board,int depth,int individualMovementCount,int alpha,int beta,boolean nullAllowed)
     {
         positionSeen++;
         peekAtClock();
@@ -73,19 +73,20 @@ public class Search
         {
             return 0;
         }
-        if(MoveGenerator.isKingAttacked(board,board.whiteToMove))
+        boolean inCheck = MoveGenerator.isKingAttacked(board,board.whiteToMove);
+        if(inCheck)
         {
             depth++;
         }
         if(depth==0)
         {
-            return quiescence(board,alpha,beta);
+            return quiescence(board,alpha,beta,individualMovementCount);
         }
         int originalAlpha = alpha;
         int transpositionTableIndex = TranspositionTable.find(board.hash);
         if(useTable&&transpositionTableIndex!=-1&&TranspositionTable.depthAt(transpositionTableIndex)>=depth)
         {
-            int transpositionTableScore = TranspositionTable.scoreAt(transpositionTableIndex);
+            int transpositionTableScore = scorefromTable(TranspositionTable.scoreAt(transpositionTableIndex),individualMovementCount);
             int transpositionTableFlag = TranspositionTable.flagAt(transpositionTableIndex);
             if(transpositionTableFlag ==TranspositionTable.exact)
             {
@@ -99,6 +100,21 @@ public class Search
             {
                 return transpositionTableScore;
             }
+        }
+        if(nullAllowed&&!inCheck&&depth>=3&&beta<checkmate-1000&&hasPieces(board)&&Evaluator.evaluate(board)>=beta)
+        {
+            board.makeNullMove();
+            int nullMoveScore = -negamax(board,depth-3,individualMovementCount+1,-beta,-beta+2,false);
+            board.unmakeNullMove();
+            if(timesUp)
+            {
+                return 0;
+            }
+            if(nullMoveScore>=beta)
+            {
+                return beta;
+            }
+
         }
         moves=orderMoves(board,moves,individualMovementCount);
         if(useTable&&transpositionTableIndex!=-1)
@@ -118,10 +134,28 @@ public class Search
             }
         }
         int bestMove = 0;
+        int moveNumber = 0;
         for(int move:moves)
         {
             board.makeMove(move);
-            int score = -negamax(board,depth-1,individualMovementCount+1,-beta,-alpha);
+            int score;
+            boolean reduce = false;
+            if(moveNumber>=3&&depth>3&&!inCheck&&!Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0&&!MoveGenerator.isKingAttacked(board,board.whiteToMove))
+            {
+                reduce =true;
+            }
+            if(reduce)
+            {
+                score = -negamax(board,depth -2,individualMovementCount+1,-beta,-alpha,true);
+                if(score>alpha)
+                {
+                    score = -negamax(board,depth-1,individualMovementCount+1,-beta,-alpha,true);
+                }
+            }
+            else
+            {
+                score = -negamax(board,depth-1,individualMovementCount+1,-beta,-alpha,true);
+            }
             board.unmakeMove();
             if(timesUp)
             {
@@ -131,7 +165,8 @@ public class Search
                 if (!Move.unbitpackcapturePosition(move))
                 {
                     int sideIndex;
-                    if (board.whiteToMove) {
+                    if (board.whiteToMove)
+                    {
                         sideIndex = 0;
                     }
                     else
@@ -145,7 +180,7 @@ public class Search
                         killers[individualMovementCount][0] = move;
                     }
                 }
-                TranspositionTable.store(board.hash, depth,beta, TranspositionTable.lower, move);
+                TranspositionTable.store(board.hash, depth,scoreToTable(beta,individualMovementCount), TranspositionTable.lower, move);
                 return beta;
             }
             if(score>alpha)
@@ -153,6 +188,7 @@ public class Search
                 alpha=score;
                 bestMove=move;
             }
+            moveNumber++;
         }
         int flag;
         if(alpha>originalAlpha)
@@ -163,10 +199,32 @@ public class Search
         {
             flag=TranspositionTable.upper;
         }
-        TranspositionTable.store(board.hash,depth,alpha,flag,bestMove);
+        TranspositionTable.store(board.hash,depth,scoreToTable(alpha,individualMovementCount),flag,bestMove);
         return alpha;
     }
     private static final int[] value = {0,100,320,330,500,900,20000};
+    private static boolean hasPieces(Board board)
+    {
+        for(int square=0;square<64;square++)
+        {
+            int piece = board.squares[square];
+            if(piece==Board.EMPTY)
+            {
+                continue;
+            }
+            boolean pieceIsWhite =piece>0;
+            if(pieceIsWhite!=board.whiteToMove)
+            {
+                continue;
+            }
+            int pieceType = Math.abs(piece);
+            if(pieceType!=Board.Pawn&&pieceType!=Board.King)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     private static int scoreMove(Board board,int move,int individualMovementCount)
     {
         int score=0;
@@ -292,7 +350,7 @@ public class Search
             int sofarBest = 0;
             for (int move : rootMoves) {
                 board.makeMove(move);
-                int score = -negamax(board, depth - 1, 1, -beta, -alpha);
+                int score = -negamax(board, depth - 1, 1, -beta, -alpha,true);
                 board.unmakeMove();
                 if (timesUp)
                 {
@@ -325,7 +383,7 @@ public class Search
         }
         return bestMove;
     }
-    private static int quiescence(Board board,int alpha,int beta)
+    private static int quiescence(Board board,int alpha,int beta,int individualMovementCount)
     {
         positionSeen++;
         peekAtClock();
@@ -333,25 +391,33 @@ public class Search
         {
             return 0;
         }
-        int currentEval = Evaluator.evaluate(board);
-        if(currentEval>=beta)
+        boolean inCheck = MoveGenerator.isKingAttacked(board,board.whiteToMove);
+        if(!inCheck)
         {
-            return beta;
-        }
-        if(currentEval>alpha)
-        {
-            alpha = currentEval;
+            int currentEval = Evaluator.evaluate(board);
+            if(currentEval>=beta)
+            {
+                return beta;
+            }
+            if(currentEval>alpha)
+            {
+                alpha = currentEval;
+            }
         }
         int[] moves = MoveGenerator.generateLegalMoves(board);
+        if(inCheck&&moves.length==0)
+        {
+            return -checkmate+individualMovementCount;
+        }
         moves = orderMoves(board,moves,128);
         for(int move:moves)
         {
-            if(!Move.unbitpackcapturePosition(move))
+            if(!inCheck&&!Move.unbitpackcapturePosition(move))
             {
                 continue;
             }
             board.makeMove(move);
-            int score = -quiescence(board,-beta,-alpha);
+            int score = -quiescence(board,-beta,-alpha,individualMovementCount+1);
             board.unmakeMove();
             if(timesUp)
             {

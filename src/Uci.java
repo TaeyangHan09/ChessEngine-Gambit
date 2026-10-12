@@ -127,6 +127,7 @@ public class Uci
             else if(command.equals("ucinewgame"))
             {
                 board = Board.fromFen(Board.STARTING_POSITION);
+                TranspositionTable.clear();
             }
             else if(command.equals("position")){
                 handlePosition(t);
