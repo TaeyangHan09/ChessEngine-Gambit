@@ -80,6 +80,7 @@ public class Uci
                 timeMs=Long.parseLong(t[i+1])/30;
             }
         }
+        timeMs=timeMs-30;
         if(timeMs<20)
         {
             timeMs=20;

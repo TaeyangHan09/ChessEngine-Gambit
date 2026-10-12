@@ -203,22 +203,29 @@ public class Search
     private static boolean useTable=true;
     private static void peekAtClock()
     {
-        if((positionSeen&2047)==0&&System.currentTimeMillis()>=doomsdayClock)
+        if((positionSeen&2047)==0&&System.nanoTime()>=doomsdayClock)
         {
             timesUp=true;
         }
     }
     public static int search(Board board,int maxDepth, long timeMs) {
-        doomsdayClock = System.currentTimeMillis() + timeMs;
+        doomsdayClock = System.nanoTime() + timeMs*1000000L;
         timesUp = false;
         positionSeen = 0;
+        long startTime = System.nanoTime();
+        long budgetNanos=timeMs*1000000L;
         int[] rootMoves = MoveGenerator.generateLegalMoves(board);
         if (rootMoves.length == 0) {
             return 0;
         }
         rootMoves = orderMoves(board, rootMoves);
         int bestMove = rootMoves[0];
-        for (int depth = 1; depth <= maxDepth; depth++) {
+        for (int depth = 1; depth <= maxDepth; depth++)
+        {
+            if(depth>1&&System.nanoTime()-startTime>budgetNanos/2)
+            {
+                break;
+            }
             int alpha = -checkmate - 1;
             int beta = checkmate + 1;
             int sofarBest = 0;
@@ -238,7 +245,7 @@ public class Search
                 break;
             }
             bestMove = sofarBest;
-            System.out.println("info depth "+depth+"score cp "+alpha+"nodes "+positionSeen);
+            System.out.println("info depth "+depth+" score cp "+alpha+" nodes "+positionSeen+" time "+(System.nanoTime()-startTime)/1000000);
             for (int i = 0; i < rootMoves.length; i++) {
                 if (rootMoves[i] == bestMove) {
                     for (int j = i; j > 0; j--) {
