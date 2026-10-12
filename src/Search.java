@@ -100,7 +100,7 @@ public class Search
                 return transpositionTableScore;
             }
         }
-        moves=orderMoves(board,moves);
+        moves=orderMoves(board,moves,individualMovementCount);
         if(useTable&&transpositionTableIndex!=-1)
         {
             int tableMove= TranspositionTable.moveAt((transpositionTableIndex));
@@ -127,9 +127,25 @@ public class Search
             {
                 return 0;
             }
-            if(score>=beta)
-            {
-                TranspositionTable.store(board.hash,depth,beta,TranspositionTable.lower,move);
+            if(score>=beta) {
+                if (!Move.unbitpackcapturePosition(move))
+                {
+                    int sideIndex;
+                    if (board.whiteToMove) {
+                        sideIndex = 0;
+                    }
+                    else
+                    {
+                        sideIndex = 1;
+                    }
+                    history[sideIndex][Move.unbitpackcurrentPosition(move)][Move.unbitpackchangedPosition(move)] += depth * depth;
+                    if (individualMovementCount < 128 && killers[individualMovementCount][0] != move)
+                    {
+                        killers[individualMovementCount][1] = killers[individualMovementCount][0];
+                        killers[individualMovementCount][0] = move;
+                    }
+                }
+                TranspositionTable.store(board.hash, depth,beta, TranspositionTable.lower, move);
                 return beta;
             }
             if(score>alpha)
@@ -151,7 +167,7 @@ public class Search
         return alpha;
     }
     private static final int[] value = {0,100,320,330,500,900,20000};
-    private static int scoreMove(Board board,int move)
+    private static int scoreMove(Board board,int move,int individualMovementCount)
     {
         int score=0;
         int from=Move.unbitpackcurrentPosition(move);
@@ -171,15 +187,43 @@ public class Search
         {
             score+=9000+value[promo];
         }
+        boolean isKiller = false;
+
+        if(individualMovementCount<128)
+        {
+            if(move==killers[individualMovementCount][0])
+            {
+                score+=8000;
+                isKiller=true;
+            }
+            else if(move==killers[individualMovementCount][1])
+            {
+                score+=7000;
+                isKiller=true;
+            }
+        }
+        if(!isKiller&&!Move.unbitpackcapturePosition(move)&&promo==0)
+        {
+            int sideIndex;
+            if(board.whiteToMove)
+            {
+                sideIndex=0;
+            }
+            else
+            {
+                sideIndex=1;
+            }
+            score+=Math.min(history[sideIndex][from][to],6000);
+        }
         return score;
     }
-    private static int[] orderMoves(Board board,int[] moves)
+    private static int[] orderMoves(Board board,int[] moves,int individualMovementCount)
     {
         int n=moves.length;
         int[] scores=new int[n];
         for(int i=0; i<n;i++)
         {
-            scores[i] = scoreMove(board,moves[i]);
+            scores[i] = scoreMove(board,moves[i],individualMovementCount);
         }
         for(int i=1;i<n;i++)
         {
@@ -201,6 +245,8 @@ public class Search
     private static boolean timesUp = false;
     private static long positionSeen = 0;
     private static boolean useTable=true;
+    private static final int [][] killers = new int[128][2];
+    private static final int[][][] history = new int[2][64][64];
     private static void peekAtClock()
     {
         if((positionSeen&2047)==0&&System.nanoTime()>=doomsdayClock)
@@ -212,13 +258,28 @@ public class Search
         doomsdayClock = System.nanoTime() + timeMs*1000000L;
         timesUp = false;
         positionSeen = 0;
+        for(int i=0;i<128;i++)
+        {
+            killers[i][0]=0;
+            killers[i][1]=0;
+        }
+        for(int side=0;side<2;side++)
+        {
+            for(int from=0;from<64;from++)
+            {
+                for(int to=0;to<64;to++)
+                {
+                    history[side][from][to]=0;
+                }
+            }
+        }
         long startTime = System.nanoTime();
         long budgetNanos=timeMs*1000000L;
         int[] rootMoves = MoveGenerator.generateLegalMoves(board);
         if (rootMoves.length == 0) {
             return 0;
         }
-        rootMoves = orderMoves(board, rootMoves);
+        rootMoves = orderMoves(board, rootMoves,0);
         int bestMove = rootMoves[0];
         for (int depth = 1; depth <= maxDepth; depth++)
         {
@@ -233,9 +294,15 @@ public class Search
                 board.makeMove(move);
                 int score = -negamax(board, depth - 1, 1, -beta, -alpha);
                 board.unmakeMove();
-                if (timesUp) {
+                if (timesUp)
+                {
+                    if(sofarBest!=0)
+                    {
+                        bestMove=sofarBest;
+                    }
                     break;
                 }
+                bestMove = sofarBest;
                 if (score > alpha) {
                     alpha = score;
                     sofarBest = move;
@@ -276,7 +343,7 @@ public class Search
             alpha = currentEval;
         }
         int[] moves = MoveGenerator.generateLegalMoves(board);
-        moves = orderMoves(board,moves);
+        moves = orderMoves(board,moves,128);
         for(int move:moves)
         {
             if(!Move.unbitpackcapturePosition(move))

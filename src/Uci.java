@@ -59,6 +59,7 @@ public class Uci
     private static void handleGo(String[] t)
     {
         long timeMs=1000;
+        long incrementMs = 0;
         int depth=64;
         for(int i=1;i<t.length-1;i++)
         {
@@ -79,7 +80,17 @@ public class Uci
             {
                 timeMs=Long.parseLong(t[i+1])/30;
             }
+            if(board.whiteToMove&&t[i].equals("winc"))
+            {
+                incrementMs = Long.parseLong(t[i+1]);
+            }
+            if(!board.whiteToMove&&t[i].equals("binc"))
+            {
+                incrementMs=Long.parseLong(t[i+1]);
+            }
+
         }
+        timeMs = timeMs+incrementMs/2;
         timeMs=timeMs-30;
         if(timeMs<20)
         {
