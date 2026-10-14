@@ -403,7 +403,7 @@ public class Search
                 alpha = currentEval;
             }
         }
-        int[] moves = MoveGenerator.generateLegalMoves(board);
+        int[] moves = inCheck?MoveGenerator.generateLegalMoves(board):MoveGenerator.generateLegalCaptures(board);
         if(inCheck&&moves.length==0)
         {
             return -checkmate+individualMovementCount;

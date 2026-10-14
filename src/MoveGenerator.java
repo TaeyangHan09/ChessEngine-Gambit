@@ -13,7 +13,15 @@ public class MoveGenerator
     private static final int[] promotionPieces={Board.Knight,Board.Bishop,Board.Rook,Board.Queen};
     public static int[] generateLegalMoves(Board board)
     {
-        int[] pseudo = generateMove(board);
+        return generateLegalMoves(board,false);
+    }
+    public static int[] generateLegalCaptures(Board board)
+    {
+        return generateLegalMoves(board,true);
+    }
+    public static int[] generateLegalMoves(Board board,boolean captruesOnly)
+    {
+        int[] pseudo = generateMove(board,captruesOnly);
         int[] legal = new int[pseudo.length];
         int n =0;
         boolean mover = board.whiteToMove;
@@ -28,7 +36,11 @@ public class MoveGenerator
         }
         return Arrays.copyOf(legal,n);
     }
-    public static int[] generateMove(Board board) {
+    public static int[] generateMove(Board board)
+    {
+        return generateMove(board,false);
+    }
+    public static int[] generateMove(Board board,boolean capturesOnly) {
         int[] moves = new int[256];
         int count = 0;
         for (int square = 0; square < 64; square++) {
@@ -53,10 +65,15 @@ public class MoveGenerator
                     }
                     int changedSquare = changedRow * 8 + changedColumn;
                     int changedPiece = board.squares[changedSquare];
-                    if (changedPiece == Board.EMPTY) {
-                        moves[count] = Move.bitpack(square, changedSquare, 0, false, false, false, false);
-                        count++;
-                    } else if (changedPiece * piece < 0) {
+                    if (changedPiece == Board.EMPTY)
+                    {
+                        if(!capturesOnly)
+                        {
+                            moves[count] = Move.bitpack(square, changedSquare, 0, false, false, false, false);
+                            count++;
+                        }
+                    }
+                    else if (changedPiece * piece < 0) {
                         moves[count] = Move.bitpack(square, changedSquare, 0, true, false, false, false);
                         count++;
                     }
@@ -76,15 +93,19 @@ public class MoveGenerator
                     }
                     int changedSquare = changedRow * 8 + changedColumn;
                     int changedPiece = board.squares[changedSquare];
-                    if (changedPiece == Board.EMPTY) {
-                        moves[count] = Move.bitpack(square, changedSquare, 0, false, false, false, false);
-                        count++;
+                    if (changedPiece == Board.EMPTY)
+                    {
+                        if(!capturesOnly)
+                        {
+                            moves[count] = Move.bitpack(square, changedSquare, 0, false, false, false, false);
+                            count++;
+                        }
                     } else if (changedPiece * piece < 0) {
                         moves[count] = Move.bitpack(square, changedSquare, 0, true, false, false, false);
                         count++;
                     }
                 }
-                if(pieceIsWhite&&square==60&&board.whiteKingside)
+                if(pieceIsWhite&&square==60&&board.whiteKingside&&!capturesOnly)
                 {
 
                     if(board.squares[61] == Board.EMPTY && board.squares[62] == Board.EMPTY &&board.squares[63] == Board.Rook&&!isSquareAttacked(board,60,false)&&!isSquareAttacked(board,61,false))
@@ -93,7 +114,7 @@ public class MoveGenerator
                         count++;
                     }
                 }
-                if(pieceIsWhite&&square==60&&board.whiteQueenside)
+                if(pieceIsWhite&&square==60&&board.whiteQueenside&&!capturesOnly)
                 {
 
                     if(board.squares[59] == Board.EMPTY &&board.squares[58]==Board.EMPTY&& board.squares[57] == Board.EMPTY &&board.squares[56] == Board.Rook&&!isSquareAttacked(board,60,false)&&!isSquareAttacked(board,59,false))
@@ -102,7 +123,7 @@ public class MoveGenerator
                         count++;
                     }
                 }
-                if(!pieceIsWhite&&square==4&&board.blackKingside)
+                if(!pieceIsWhite&&square==4&&board.blackKingside&&!capturesOnly)
                 {
 
                     if(board.squares[5] == Board.EMPTY && board.squares[6] == Board.EMPTY &&board.squares[7] == -Board.Rook&&!isSquareAttacked(board,4,true)&&!isSquareAttacked(board,5,true))
@@ -111,7 +132,7 @@ public class MoveGenerator
                         count++;
                     }
                 }
-                if(!pieceIsWhite&&square==4&&board.blackQueenside)
+                if(!pieceIsWhite&&square==4&&board.blackQueenside&&!capturesOnly)
                 {
 
                     if(board.squares[3] == Board.EMPTY &&board.squares[2]==Board.EMPTY&& board.squares[1] == Board.EMPTY &&board.squares[0] == -Board.Rook&&!isSquareAttacked(board,4,true)&&!isSquareAttacked(board,3,true))
@@ -122,14 +143,14 @@ public class MoveGenerator
                 }
             }
             if (pieceType == Board.Rook) {
-                count = sliders(board, square, rookRow, rookColumn, moves, count);
+                count = sliders(board, square, rookRow, rookColumn, moves, count,capturesOnly);
             }
             if (pieceType == Board.Bishop) {
-                count = sliders(board, square, bishopRow, bishopColumn, moves, count);
+                count = sliders(board, square, bishopRow, bishopColumn, moves, count,capturesOnly);
             }
             if (pieceType == Board.Queen) {
-                count = sliders(board, square, rookRow, rookColumn, moves, count);
-                count = sliders(board, square, bishopRow, bishopColumn, moves, count);
+                count = sliders(board, square, rookRow, rookColumn, moves, count,capturesOnly);
+                count = sliders(board, square, bishopRow, bishopColumn, moves, count,capturesOnly);
             }
             if (pieceType == Board.Pawn)
             {
@@ -158,12 +179,13 @@ public class MoveGenerator
                         {
                             count = addPromotions(moves,count,square,changedoneStep,false);
                         }
-                        else
+                        else if(!capturesOnly)
                         {
                             moves[count] = Move.bitpack(square,changedoneStep,0,false,false,false,false);
                             count++;
                         }
-                        if (row == startingRow) {
+                        if (row == startingRow&&!   capturesOnly)
+                        {
                             int twoSteps = (row + 2 * direction) * 8 + column;
                             if (board.squares[twoSteps] == Board.EMPTY) {
                                 moves[count] = Move.bitpack(square, twoSteps, 0, false, false, true, false);
@@ -204,8 +226,7 @@ public class MoveGenerator
             return Arrays.copyOf(moves, count);
         }
 
-            private static int sliders (Board board,int square, int[] rowChanges, int[] columnChanges, int[] moves,
-            int count)
+            private static int sliders (Board board,int square, int[] rowChanges, int[] columnChanges, int[] moves, int count,boolean captureOnly)
             {
                 int piece = board.squares[square];
                 int row = square / 8;
@@ -216,10 +237,16 @@ public class MoveGenerator
                     while (changedRow >= 0 && changedRow <= 7 && changedColumn >= 0 && changedColumn <= 7) {
                         int changedSquare = changedRow * 8 + changedColumn;
                         int changedPiece = board.squares[changedSquare];
-                        if (changedPiece == Board.EMPTY) {
-                            moves[count] = Move.bitpack(square, changedSquare, 0, false, false, false, false);
-                            count++;
-                        } else {
+                        if (changedPiece == Board.EMPTY)
+                        {
+                            if(!captureOnly)
+                            {
+                                moves[count] = Move.bitpack(square, changedSquare, 0, false, false, false, false);
+                                count++;
+                            }
+                        }
+                        else
+                        {
                             if (changedPiece * piece < 0) {
                                 moves[count] = Move.bitpack(square, changedSquare, 0, true, false, false, false);
                                 count++;
@@ -244,7 +271,23 @@ public class MoveGenerator
             }
             public static int findKing(Board board, boolean white)
             {
-                return board.kingSquare[white?0:1];
+                int king;
+                if(white)
+                {
+                    king=Board.King;
+                }
+                else
+                {
+                    king=-Board.King;
+                }
+                for(int square = 0;square<64;square++)
+                {
+                    if(board.squares[square]==king)
+                    {
+                        return square;
+                    }
+                }
+                return -1;
             }
             public static boolean isSquareAttacked(Board board,int square,boolean byWhite)
             {
