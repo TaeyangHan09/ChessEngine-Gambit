@@ -411,10 +411,6 @@ public class Search
         moves = orderMoves(board,moves,128);
         for(int move:moves)
         {
-            if(!inCheck&&!Move.unbitpackcapturePosition(move))
-            {
-                continue;
-            }
             board.makeMove(move);
             int score = -quiescence(board,-beta,-alpha,individualMovementCount+1);
             board.unmakeMove();

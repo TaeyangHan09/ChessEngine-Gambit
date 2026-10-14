@@ -13,11 +13,18 @@ public class TranspositionTable
     public static void store(long hash,int depth,int score,int flag,int move)
     {
         int index = (int)(hash&mask);
-        keys[index] = hash;
-        depths[index] = depth;
-        scores[index] = score;
-        flags[index] = flag;
-        moves[index]=move;
+        if(keys[index]==hash&&move==0)
+        {
+            move = moves[index];
+        }
+        if(keys[index]!=hash||depth>=depths[index]-2)
+        {
+            keys[index] = hash;
+            depths[index] = depth;
+            scores[index] = score;
+            flags[index] = flag;
+            moves[index]=move;
+        }
     }
     public static int find(long hash)
     {
