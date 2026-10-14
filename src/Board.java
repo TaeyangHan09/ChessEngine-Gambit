@@ -1,3 +1,5 @@
+import java.time.ZonedDateTime;
+
 public class Board {
     public static final int EMPTY = 0, Pawn = 1, Knight = 2, Bishop = 3, Rook = 4, Queen = 5, King = 6;
     public final int[] squares = new int[64];
@@ -185,7 +187,55 @@ public class Board {
             fullmoveNumber++;
         }
         whiteToMove =!whiteToMove;
-        hash = computeHash();
+        hash^=ZobristHash.pieceKeys[piece+6][from];
+        if(captured!=EMPTY)
+        {
+            hash^= ZobristHash.pieceKeys[captured+6][capturedSquare];
+        }
+        hash^=ZobristHash.pieceKeys[squares[to]+6][to];
+        if(isCastling)
+        {
+            if(to==62)
+            {
+                hash^=ZobristHash.pieceKeys[Board.Rook+6][63];
+                hash^=ZobristHash.pieceKeys[Board.Rook+6][61];
+            }
+            else if(to==58)
+            {
+                hash^=ZobristHash.pieceKeys[Board.Rook+6][56];
+                hash^=ZobristHash.pieceKeys[Board.Rook+6][59];
+            }
+            else if(to==6)
+            {
+                hash^=ZobristHash.pieceKeys[-Board.Rook+6][7];
+                hash^=ZobristHash.pieceKeys[-Board.Rook+6][5];
+            }
+            else if(to==2)
+            {
+                hash^=ZobristHash.pieceKeys[-Board.Rook+6][0];
+                hash^=ZobristHash.pieceKeys[-Board.Rook+6][3];
+            }
+        }
+        hash^=ZobristHash.sideKey;
+        hash^=ZobristHash.castlingkeys[castlingHistory[individualmoveCount-1]];
+        hash^=ZobristHash.castlingkeys[castlingTracker()];
+        int oldEnPassantIndex=enPassantHistory[individualmoveCount-1];
+        if(oldEnPassantIndex==-1)
+        {
+            oldEnPassantIndex=64;
+        }
+        int newEnPassantIndex=enPassantSquare;
+        if(newEnPassantIndex==-1)
+        {
+            newEnPassantIndex=64;
+        }
+        hash^=ZobristHash.enPassantKeys[oldEnPassantIndex];
+        hash^=ZobristHash.enPassantKeys[newEnPassantIndex];
+        if(hash!=computeHash())
+        {
+            throw new IllegalArgumentException("hash mismatch after move "+move);
+        }
+
     }
     public void unmakeMove()
     {

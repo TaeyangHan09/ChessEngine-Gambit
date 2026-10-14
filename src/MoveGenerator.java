@@ -5,6 +5,12 @@ public class MoveGenerator
     private static final int[] rookColumn = {0,0,-1,1};
     private static final int[] bishopRow = {-1,-1,1,1};
     private static final int[] bishopColumn = {-1,1,-1,1};
+    private static final int[] kingRow = {-1,-1,-1,0,0,1,1,1};
+    private static final int[] kingColumn = {-1,0,1,-1,1,-1,0,1};
+    private static final int[] pawnCaptureColumn = {-1,1};
+    private static final int[] knightRow = {-2,-2,-1,-1,1,1,2,2};
+    private static final int[] knightColumn = {-1,1,-2,2,-2,2,-1,1};
+    private static final int[] promotionPieces={Board.Knight,Board.Bishop,Board.Rook,Board.Queen};
     public static int[] generateLegalMoves(Board board)
     {
         int[] pseudo = generateMove(board);
@@ -38,11 +44,10 @@ public class MoveGenerator
             if (pieceType == Board.Knight) {
                 int row = square / 8;
                 int column = square % 8;
-                int[] rowChanges = {-2, -2, -1, -1, 1, 1, 2, 2};
-                int[] columnChanges = {-1, 1, -2, 2, -2, 2, -1, 1};
-                for (int horseyjump = 0; horseyjump < 8; horseyjump++) {
-                    int changedRow = row + rowChanges[horseyjump];
-                    int changedColumn = column + columnChanges[horseyjump];
+                for (int horseyjump = 0; horseyjump < 8; horseyjump++)
+                {
+                    int changedRow = row + knightRow[horseyjump];
+                    int changedColumn = column + knightColumn[horseyjump];
                     if (changedRow < 0 || changedRow > 7 || changedColumn < 0 || changedColumn > 7) {
                         continue;
                     }
@@ -62,12 +67,10 @@ public class MoveGenerator
             if (pieceType == Board.King) {
                 int row = square / 8;
                 int column = square % 8;
-                int[] rowChanges = {-1, -1, -1, 0, 0, 1, 1, 1};
-                int[] columnChanges = {-1, 0, 1, -1, 1, -1, 0, 1};
                 for (int mightykingwalk = 0; mightykingwalk < 8; mightykingwalk++)
                 {
-                    int changedRow = row + rowChanges[mightykingwalk];
-                    int changedColumn = column + columnChanges[mightykingwalk];
+                    int changedRow = row + kingRow[mightykingwalk];
+                    int changedColumn = column + kingColumn[mightykingwalk];
                     if (changedRow < 0 || changedRow > 7 || changedColumn < 0 || changedColumn > 7) {
                         continue;
                     }
@@ -168,10 +171,9 @@ public class MoveGenerator
                             }
                         }
                     }
-                    int[] capturecolumnChange = {-1, 1};
                     for (int k = 0; k < 2; k++) {
                         int captureRow = row + direction;
-                        int captureColumn = column + capturecolumnChange[k];
+                        int captureColumn = column + pawnCaptureColumn[k];
                         if (captureRow < 0 || captureRow > 7 || captureColumn < 0 || captureColumn > 7) {
                             continue;
                         }
@@ -233,7 +235,6 @@ public class MoveGenerator
             }
             private static int addPromotions(int[] moves,int count, int from, int to, boolean capture)
             {
-                int[] promotionPieces = {Board.Knight,Board.Bishop,Board.Rook,Board.Queen};
                 for(int i=0;i<4;i++)
                 {
                     moves[count] = Move.bitpack(from,to,promotionPieces[i],capture,false,false,false);
@@ -277,10 +278,9 @@ public class MoveGenerator
                     attackerRow = row-1;
                     attackingPawn = -Board.Pawn;
                 }
-                int[] columnVariation = {-1,1};
                 for(int i=0;i<2;i++)
                 {
-                    int attackColumn = column +columnVariation[i];
+                    int attackColumn = column +pawnCaptureColumn[i];
                     if(attackColumn<0||attackColumn>7||attackerRow<0||attackerRow>7)
                     {
                         continue;
@@ -299,8 +299,6 @@ public class MoveGenerator
                 {
                     attackingKnight = -Board.Knight;
                 }
-                int[]knightRow = {-2,-2,-1,-1,1,1,2,2};
-                int[]knightColumn = {-1,1,-2,2,-2,2,-1,1};
                 for(int i=0;i<8;i++)
                 {
                     int jumpRow = row+knightRow[i];
@@ -323,8 +321,6 @@ public class MoveGenerator
                 {
                     attackingKing = -Board.King;
                 }
-                int[]kingRow = {-1,-1,-1,0,0,1,1,1};
-                int[]kingColumn = {-1,0,1,-1,1,-1,0,1};
                 for(int i = 0;i<8;i++)
                 {
                     int stepRow = row+kingRow[i];

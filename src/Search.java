@@ -74,7 +74,7 @@ public class Search
             return 0;
         }
         boolean inCheck = MoveGenerator.isKingAttacked(board,board.whiteToMove);
-        if(inCheck)
+        if(inCheck&&individualMovementCount<100)
         {
             depth++;
         }
@@ -104,7 +104,7 @@ public class Search
         if(nullAllowed&&!inCheck&&depth>=3&&beta<checkmate-1000&&hasPieces(board)&&Evaluator.evaluate(board)>=beta)
         {
             board.makeNullMove();
-            int nullMoveScore = -negamax(board,depth-3,individualMovementCount+1,-beta,-beta+2,false);
+            int nullMoveScore = -negamax(board,depth-3,individualMovementCount+1,-beta,-beta+1,false);
             board.unmakeNullMove();
             if(timesUp)
             {
@@ -360,7 +360,6 @@ public class Search
                     }
                     break;
                 }
-                bestMove = sofarBest;
                 if (score > alpha) {
                     alpha = score;
                     sofarBest = move;

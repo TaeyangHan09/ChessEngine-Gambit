@@ -225,7 +225,7 @@ public class Evaluator
             }
             if(blackPawny[column]>0&&!blackHasBuddy)
             {
-                score = score-isolatedPawnPenalty*blackPawny[column];
+                score = score+isolatedPawnPenalty*blackPawny[column];
             }
         }
         return score;
@@ -235,10 +235,10 @@ public class Evaluator
     private static final int rookMobilityWeight=2;
     private static final int queenMobilityWeight=1;
     private static final int[] mobilityKnightRow={-2,-2,-1,-1,1,1,2,2};
-    private static final int[] mobilityKnightColumn={-2,-2,-1,-1,1,1,2,2};
+    private static final int[] mobilityKnightColumn={-1,1,-2,2,-2,2,-1,1};
     private static final int[] mobilityRookRow={-1,1,0,0};
     private static final int[] mobilityRookColumn={-0,0,-1,1};
-    private static final int[] mobilityBishopRow={-1,-1,0,0};
+    private static final int[] mobilityBishopRow={-1,-1,1,1};
     private static final int[] mobilityBishopColumn={-1,1,-1,1};
     private static int countKnigtSquare(Board board,int square)
     {
@@ -433,7 +433,6 @@ public class Evaluator
                 score-=value[absolutevalue]+specificTable[square^56];
             }
         }
-        score=score+pawnStructure(board);
         score=score+pawnStructure(board);
         score=score+mobility(board);
         if(!endgame)
