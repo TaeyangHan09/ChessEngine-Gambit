@@ -244,23 +244,7 @@ public class MoveGenerator
             }
             public static int findKing(Board board, boolean white)
             {
-                int king;
-                if(white)
-                {
-                    king=Board.King;
-                }
-                else
-                {
-                    king=-Board.King;
-                }
-                for(int square = 0;square<64;square++)
-                {
-                    if(board.squares[square]==king)
-                    {
-                        return square;
-                    }
-                }
-                return -1;
+                return board.kingSquare[white?0:1];
             }
             public static boolean isSquareAttacked(Board board,int square,boolean byWhite)
             {

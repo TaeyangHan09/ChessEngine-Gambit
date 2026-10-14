@@ -12,6 +12,7 @@ public class Board {
     public boolean blackQueenside = false;
     public int enPassantSquare = -1;
     public long hash;
+    public final int[] kingSquare={-1,-1};
     public static final String STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     private final int[] moveHistory = new int[1024];
     private final int[] movedpieceHistory = new int[1024];
@@ -118,7 +119,10 @@ public class Board {
         {
             squares[to] = piece;
         }
-
+        if(Math.abs(piece)==King)
+        {
+            kingSquare[piece>0 ? 0:1]=to;
+        }
         if(isCastling)
         {
             if(to==62)
@@ -252,6 +256,11 @@ public class Board {
             fullmoveNumber--;
         }
         squares[from] = movedpieceHistory[individualmoveCount];
+        int movedPiece = movedpieceHistory[individualmoveCount];
+        if(Math.abs(movedPiece)==King)
+        {
+            kingSquare[movedPiece>0?0:1]=from;
+        }
         squares[to] = EMPTY;
         if(isCastling)
         {
@@ -416,8 +425,13 @@ public class Board {
                 }
                 else
                 {
-                    squares[row*8+column] = pieceFromChar(c);
-                    column =column+1;
+                    int placed = pieceFromChar(c);
+                    squares[row*8+column] = placed;
+                    if(Math.abs(placed)==King)
+                    {
+                        kingSquare[placed>0?0:1] = row*8+column;
+                    }
+                    column=column+1;
                 }
             }
 
