@@ -502,9 +502,11 @@ public class Search
         }
         boolean inCheck = MoveGenerator.isKingAttacked(board,board.whiteToMove);
         int bestScore=-checkmate-1;
+        int standPat=0;
         if(!inCheck)
         {
             int currentEval = Evaluator.evaluate(board);
+            standPat=currentEval;
             if(currentEval>=beta)
             {
                 return currentEval;
@@ -521,6 +523,18 @@ public class Search
         int legalMoveCount = 0;
         for(int move:moves)
         {
+            if(!inCheck&&Move.unbitpackpromotionPosition(move)==0)
+            {
+                int victim=Math.abs(board.squares[Move.unbitpackchangedPosition(move)]);
+                if(Move.unbitpackenPassant(move))
+                {
+                    victim=Board.Pawn;
+                }
+                if(standPat+value[victim]+200<=alpha)
+                {
+                    continue;
+                }
+            }
             board.makeMove(move);
             if(MoveGenerator.isKingAttacked(board,mover))
             {
