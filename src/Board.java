@@ -341,7 +341,7 @@ public class Board {
         hash^=ZobristHash.enPassantKeys[64];
         hash^=ZobristHash.sideKey;
         enPassantSquare=-1;
-        halfmoveClock++;
+        halfmoveClock=0;
         whiteToMove=!whiteToMove;
         if(debugMode&&hash!=computeHash())
         {

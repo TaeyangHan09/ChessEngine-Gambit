@@ -312,7 +312,8 @@ public class Search
         }
         return moves;
     }
-    private static long doomsdayClock = Long.MAX_VALUE;
+    public static boolean fixedMoveTime=false;
+    private static long doomsdayClock=Long.MAX_VALUE;
     private static boolean timesUp = false;
     private static long positionSeen = 0;
     private static boolean useTable=true;
@@ -354,7 +355,7 @@ public class Search
         int bestMove = rootMoves[0];
         for (int depth = 1; depth <= maxDepth; depth++)
         {
-            if(depth>1&&System.nanoTime()-startTime>budgetNanos/2)
+            if(!fixedMoveTime&&depth>1&&System.nanoTime()-startTime>budgetNanos/2)
             {
                 break;
             }

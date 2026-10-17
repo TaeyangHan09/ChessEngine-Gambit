@@ -59,6 +59,7 @@ public class Uci
     private static void handleGo(String[] t)
     {
         long timeMs=1000;
+        Search.fixedMoveTime=false;
         long incrementMs = 0;
         int depth=64;
         for(int i=1;i<t.length-1;i++)
@@ -66,6 +67,7 @@ public class Uci
             if(t[i].equals("movetime"))
             {
                 timeMs= Long.parseLong(t[i+1]);
+                Search.fixedMoveTime=true;
             }
             if(t[i].equals("depth"))
             {
