@@ -153,7 +153,11 @@ public class Search
                 int reduction=0;
                 if(reduce)
                 {
-                    reduction=1;
+                    reduction=lateMoveReduction[Math.min(depth,63)][Math.min(moveNumber,63)];
+                    if(depth-1-reduction<1)
+                    {
+                        reduction=depth-2;
+                    }
                 }
                 score=-negamax(board,depth-1-reduction,individualMovementCount+1,-alpha-1,-alpha,true);
                 if(score>alpha&&reduction>0)
@@ -326,7 +330,18 @@ public class Search
     private static boolean timesUp = false;
     private static long positionSeen = 0;
     private static boolean useTable=true;
-    private static final int [][] killers = new int[128][2];
+    private static final int[][] lateMoveReduction=new int[64][64];
+    static
+    {
+        for(int depth=1;depth<64;depth++)
+        {
+            for(int moveNumber=1;moveNumber<64;moveNumber++)
+            {
+                lateMoveReduction[depth][moveNumber]=(int)(0.75+Math.log(moveNumber)/2.25);
+            }
+        }
+    }
+    private static final int [][] killers=new int[128][2];
     private static final int[][][] history = new int[2][64][64];
     private static void peekAtClock()
     {
