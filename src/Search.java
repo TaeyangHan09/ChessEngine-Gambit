@@ -392,50 +392,83 @@ public class Search
         }
         rootMoves = orderMoves(board, rootMoves,0);
         int bestMove = rootMoves[0];
+        int previousScore=0;
         for (int depth = 1; depth <= maxDepth; depth++)
         {
             if(!fixedMoveTime&&depth>1&&System.nanoTime()-startTime>budgetNanos/2)
             {
                 break;
             }
-            int alpha = -checkmate - 1;
-            int beta = checkmate + 1;
-            int sofarBest = 0;
-            boolean firstRootMove=true;
-            for (int move : rootMoves) {
-                board.makeMove(move);
-                int score;
-                if(firstRootMove)
+            int window=50;
+            int alpha;
+            int beta;
+            if(depth>=5)
+            {
+                alpha=previousScore-window;
+                beta=previousScore+window;
+            }
+            else
+            {
+                alpha = -checkmate - 1;
+                beta = checkmate + 1;
+            }
+            int sofarBest=0;
+            while(true)
+            {
+                sofarBest = 0;
+                boolean failHigh = false;
+                boolean firstRootMove = true;
+                for (int move : rootMoves)
                 {
-                    score=-negamax(board,depth-1,1,-beta,-alpha,true);
-                    firstRootMove=false;
-                }
-                else
-                {
-                    score=-negamax(board,depth-1,1,-alpha-1,-alpha,true);
-                    if(score>alpha&&!timesUp)
-                    {
-                        score=-negamax(board,depth-1,1,-beta,-alpha,true);
+                    board.makeMove(move);
+                    int score;
+                    if (firstRootMove) {
+                        score = -negamax(board, depth - 1, 1, -beta, -alpha, true);
+                        firstRootMove = false;
+                    } else {
+                        score = -negamax(board, depth - 1, 1, -alpha - 1, -alpha, true);
+                        if (score > alpha && !timesUp) {
+                            score = -negamax(board, depth - 1, 1, -beta, -alpha, true);
+                        }
+                    }
+                    board.unmakeMove();
+                    if (timesUp) {
+                        if (sofarBest != 0) {
+                            bestMove = sofarBest;
+                        }
+                        break;
+                    }
+                    if (score > alpha) {
+                        alpha = score;
+                        sofarBest = move;
+                    }
+                    if (score >= beta) {
+                        failHigh = true;
+                        break;
                     }
                 }
-                board.unmakeMove();
-                if (timesUp)
-                {
-                    if(sofarBest!=0)
-                    {
-                        bestMove=sofarBest;
-                    }
+                if (timesUp) {
                     break;
                 }
-                if (score > alpha) {
-                    alpha = score;
-                    sofarBest = move;
+                if (failHigh || sofarBest == 0) {
+                    window = window * 4;
+                    if (window >= 1000) {
+                        alpha = -checkmate - 1;
+                        beta = checkmate + 1;
+                    } else {
+                        alpha = previousScore - window;
+                        beta = previousScore + window;
+                    }
+                    continue;
                 }
+                break;
             }
-            if (timesUp) {
+            if(timesUp)
+            {
                 break;
             }
             bestMove = sofarBest;
+            previousScore=alpha;
             System.out.println("info depth "+depth+" score cp "+alpha+" nodes "+positionSeen+" time "+(System.nanoTime()-startTime)/1000000);
             for (int i = 0; i < rootMoves.length; i++) {
                 if (rootMoves[i] == bestMove) {
