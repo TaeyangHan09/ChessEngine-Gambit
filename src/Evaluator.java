@@ -141,7 +141,7 @@ public class Evaluator
             {
                 return false;
             }
-            if(!white&&blackFrontPawnRow[checkColumn]<row)
+            if(!white&&whiteFrontPawnRow[checkColumn]>row)
             {
                 return false;
             }
@@ -329,7 +329,7 @@ public class Evaluator
     private static final int openFilePnenalty = 15;
     private static int kingDangerPenalty(Board board,boolean white,int[] ownPawny)
     {
-        int kingSquare =MoveGenerator.findKing(board,white);
+        int kingSquare =board.kingSquare[white?0:1];
         if(kingSquare==-1)
         {
             return 0;

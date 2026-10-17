@@ -69,7 +69,7 @@ public class Search
         {
             return quiescence(board, alpha, beta, individualMovementCount);
         }
-        if(board.halfmoveClock>=100)
+        if(board.halfmoveClock>=100&&!inCheck)
         {
             return 0;
         }

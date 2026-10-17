@@ -424,7 +424,7 @@ public class MoveGenerator
             }
             public static boolean isKingAttacked(Board board,boolean white)
             {
-                int mightykingSquare=findKing(board,white);
+                int mightykingSquare=board.kingSquare[white?0:1];
                 if(mightykingSquare==-1)
                 {
                     return false;
