@@ -127,7 +127,7 @@ public class Evaluator
     private static final int doubledPawnPenalty = 15;
     private static final int isolatedPawnPenalty = 15;
     private static final int[] passedPawnBonus={0,5,10,20,40,70,0,0};
-    private static boolean isPassedPawn(Board board,int square,boolean white)
+    private static boolean isPassedPawn(int square,boolean white,int[]whiteFrontPawnRow,int[]blackFrontPawnRow)
     {
         int row=square/8;
         int column=square%8;
@@ -137,49 +137,33 @@ public class Evaluator
             {
                 continue;
             }
-            if(white)
+            if(white&&blackFrontPawnRow[checkColumn]<row)
             {
-                for(int checkRow = row-1;checkRow>=0;checkRow--)
-                {
-                    if(board.squares[checkRow*8+checkColumn]==-Board.Pawn)
-                    {
-                        return false;
-                    }
-                }
+                return false;
             }
-            else
+            if(!white&&blackFrontPawnRow[checkColumn]<row)
             {
-                for(int checkRow=row+1;checkRow<7;checkRow++)
-                {
-                    if(board.squares[checkRow*8+checkColumn]==Board.Pawn)
-                    {
-                        return false;
-                    }
-                }
+                return false;
             }
         }
         return true;
     }
-    private static int pawnStructure(Board board)
+    private static int pawnStructure(Board board,int[] whitePawny,int[] blackPawny,int[] whiteFrontPawnRow,int[] blackFrontPawnRow)
     {
-        int[] whitePawny = new int[8];
-        int[] blackPawny=new int[8];
         int score=0;
         for(int square=0;square<64;square++)
         {
             int piece=board.squares[square];
             if(piece==Board.Pawn)
             {
-                whitePawny[square%8]++;
-                if(isPassedPawn(board,square,true))
+            if(isPassedPawn(square,true,whiteFrontPawnRow,blackFrontPawnRow))
                 {
                     score = score+passedPawnBonus[6-square/8];
                 }
             }
             if(piece==-Board.Pawn)
             {
-                blackPawny[square%8]++;
-                if(isPassedPawn(board,square,false))
+            if(isPassedPawn(square,false,whiteFrontPawnRow,blackFrontPawnRow))
                 {
                     score=score-passedPawnBonus[square/8-1];
                 }
@@ -240,7 +224,7 @@ public class Evaluator
     private static final int[] mobilityRookColumn={-0,0,-1,1};
     private static final int[] mobilityBishopRow={-1,-1,1,1};
     private static final int[] mobilityBishopColumn={-1,1,-1,1};
-    private static int countKnigtSquare(Board board,int square)
+    private static int countKnightSquare(Board board, int square)
     {
         int piece=board.squares[square];
         int row =square/8;
@@ -308,7 +292,7 @@ public class Evaluator
             int weight=0;
             if(pieceType==Board.Knight)
             {
-                pieceMobility=countKnigtSquare(board,square);
+                pieceMobility= countKnightSquare(board,square);
                 weight=knightMobilityWeight;
             }
             else if(pieceType==Board.Bishop)
@@ -343,7 +327,7 @@ public class Evaluator
     }
     private static final int missingShieldPenalty = 10;
     private static final int openFilePnenalty = 15;
-    private static int kingDangerPenalty(Board board,boolean white)
+    private static int kingDangerPenalty(Board board,boolean white,int[] ownPawny)
     {
         int kingSquare =MoveGenerator.findKing(board,white);
         if(kingSquare==-1)
@@ -388,15 +372,7 @@ public class Evaluator
             {
                 penalty=penalty+missingShieldPenalty;
             }
-            boolean pawnyOnFile = false;
-            for(int fileRow = 0;fileRow<8;fileRow++)
-            {
-                if(board.squares[fileRow*8+checkColumn]==ownPawn)
-                {
-                    pawnyOnFile=true;
-                }
-            }
-            if(!pawnyOnFile)
+            if(ownPawny[checkColumn]==0)
             {
                 penalty=penalty+openFilePnenalty;
             }
@@ -407,6 +383,11 @@ public class Evaluator
     {
         int score = 0;
         boolean endgame = isEndgame(board);
+        int[] whitePawny=new int[8];
+        int[] blackPawny=new int[8];
+        int[] whiteFrontPawnRow={-1,-1,-1,-1,-1,-1,-1,-1};
+        int[] blackFrontPawnRow={8,8,8,8,8,8,8,8};
+        int mobilityScore=0;
         for(int square=0;square<64;square++)
         {
             int piece =board.squares[square];
@@ -415,6 +396,52 @@ public class Evaluator
                 continue;
             }
             int absolutevalue = Math.abs(piece);
+            if(absolutevalue==Board.Pawn)
+            {
+                int column=square%8;
+                int row=square/8;
+                if(piece>0)
+                {
+                    whitePawny[column]++;
+                    if(row>whiteFrontPawnRow[column])
+                    {
+                        whiteFrontPawnRow[column]=row;
+                    }
+                }
+                else
+                {
+                    blackPawny[column]++;
+                    if(row<blackFrontPawnRow[column])
+                    {
+                        blackFrontPawnRow[column]=row;
+                    }
+                }
+            }
+            int pieceMobility =0;
+            if(absolutevalue==Board.Knight)
+            {
+                pieceMobility= countKnightSquare(board,square)*knightMobilityWeight;
+            }
+            if(absolutevalue==Board.Bishop)
+            {
+                pieceMobility= countSliderSquares(board,square,mobilityBishopRow,mobilityBishopColumn)*bishopMobilityWeight;
+            }
+            if(absolutevalue==Board.Rook)
+            {
+                pieceMobility= countSliderSquares(board,square,mobilityRookRow,mobilityRookColumn)*rookMobilityWeight;
+            }
+            if(absolutevalue==Board.Queen)
+            {
+                pieceMobility= (countSliderSquares(board,square,mobilityRookRow,mobilityRookColumn)+countSliderSquares(board,square,mobilityBishopRow,mobilityBishopColumn))*queenMobilityWeight;
+            }
+            if(piece>0)
+            {
+                mobilityScore+=pieceMobility;
+            }
+            else
+            {
+                mobilityScore-=pieceMobility;
+            }
             int[] specificTable;
             if(absolutevalue==board.King&&endgame)
             {
@@ -433,11 +460,11 @@ public class Evaluator
                 score-=value[absolutevalue]+specificTable[square^56];
             }
         }
-        score=score+pawnStructure(board);
-        score=score+mobility(board);
+        score=score+pawnStructure(board,whitePawny,blackPawny,whiteFrontPawnRow,blackFrontPawnRow);
+        score=score+mobilityScore;
         if(!endgame)
         {
-            score=score-kingDangerPenalty(board,true)+kingDangerPenalty(board,false);
+            score=score-kingDangerPenalty(board,true,whitePawny)+kingDangerPenalty(board,false,blackPawny);
         }
         if(board.whiteToMove)
         {

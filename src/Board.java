@@ -13,6 +13,7 @@ public class Board {
     public int enPassantSquare = -1;
     public long hash;
     public final int[] kingSquare={-1,-1};
+    public static final boolean debugMode=false;
     public static final String STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     private final int[] moveHistory = new int[1024];
     private final int[] movedpieceHistory = new int[1024];
@@ -235,7 +236,7 @@ public class Board {
         }
         hash^=ZobristHash.enPassantKeys[oldEnPassantIndex];
         hash^=ZobristHash.enPassantKeys[newEnPassantIndex];
-        if(hash!=computeHash())
+        if(debugMode&&hash!=computeHash())
         {
             throw new IllegalArgumentException("hash mismatch after move "+move);
         }
@@ -331,10 +332,21 @@ public class Board {
         halfmoveHistory[individualmoveCount]=halfmoveClock;
         hashHistory[individualmoveCount] = hash;
         individualmoveCount++;
+        int oldEnPassantIndex=enPassantSquare;
+        if(oldEnPassantIndex==-1)
+        {
+            oldEnPassantIndex=64;
+        }
+        hash^=ZobristHash.enPassantKeys[oldEnPassantIndex];
+        hash^=ZobristHash.enPassantKeys[64];
+        hash^=ZobristHash.sideKey;
         enPassantSquare=-1;
         halfmoveClock++;
         whiteToMove=!whiteToMove;
-        hash=computeHash();
+        if(debugMode&&hash!=computeHash())
+        {
+            throw new IllegalArgumentException(("hash dont match after null"));
+        }
     }
     public void unmakeNullMove()
     {

@@ -56,19 +56,6 @@ public class Search
         {
             return 0;
         }
-        int[] moves = MoveGenerator.generateLegalMoves(board);
-        if(moves.length==0)
-        {
-            if(MoveGenerator.isKingAttacked(board, board.whiteToMove))
-            {
-                return -checkmate+individualMovementCount;
-            }
-            return 0;
-        }
-        if(board.halfmoveClock>=100)
-        {
-            return 0;
-        }
         if(board.isRepetition())
         {
             return 0;
@@ -80,7 +67,11 @@ public class Search
         }
         if(depth==0)
         {
-            return quiescence(board,alpha,beta,individualMovementCount);
+            return quiescence(board, alpha, beta, individualMovementCount);
+        }
+        if(board.halfmoveClock>=100)
+        {
+            return 0;
         }
         int originalAlpha = alpha;
         int transpositionTableIndex = TranspositionTable.find(board.hash);
@@ -101,6 +92,7 @@ public class Search
                 return transpositionTableScore;
             }
         }
+        int[] moves=MoveGenerator.generateMove(board);
         if(nullAllowed&&!inCheck&&depth>=3&&beta<checkmate-1000&&hasPieces(board)&&Evaluator.evaluate(board)>=beta)
         {
             board.makeNullMove();
@@ -135,9 +127,17 @@ public class Search
         }
         int bestMove = 0;
         int moveNumber = 0;
+        boolean mover = board.whiteToMove;
+        int legalMoveCount=0;
         for(int move:moves)
         {
             board.makeMove(move);
+            if(MoveGenerator.isKingAttacked(board,mover))
+            {
+                board.unmakeMove();
+                continue;
+            }
+            legalMoveCount++;
             int score;
             boolean reduce = false;
             if(moveNumber>=3&&depth>3&&!inCheck&&!Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0&&!MoveGenerator.isKingAttacked(board,board.whiteToMove))
@@ -189,6 +189,18 @@ public class Search
                 bestMove=move;
             }
             moveNumber++;
+        }
+        if(legalMoveCount==0)
+        {
+            if(inCheck)
+            {
+                return -checkmate+individualMovementCount;
+            }
+            return 0;
+        }
+        if(board.halfmoveClock>=100)
+        {
+            return 0;
         }
         int flag;
         if(alpha>originalAlpha)
@@ -403,15 +415,19 @@ public class Search
                 alpha = currentEval;
             }
         }
-        int[] moves = inCheck?MoveGenerator.generateLegalMoves(board):MoveGenerator.generateLegalCaptures(board);
-        if(inCheck&&moves.length==0)
-        {
-            return -checkmate+individualMovementCount;
-        }
-        moves = orderMoves(board,moves,128);
+        int[] moves = MoveGenerator.generateMove(board,!inCheck);
+        moves=orderMoves(board,moves,128);
+        boolean mover = board.whiteToMove;
+        int legalMoveCount = 0;
         for(int move:moves)
         {
             board.makeMove(move);
+            if(MoveGenerator.isKingAttacked(board,mover))
+            {
+                board.unmakeMove();
+                continue;
+            }
+            legalMoveCount++;
             int score = -quiescence(board,-beta,-alpha,individualMovementCount+1);
             board.unmakeMove();
             if(timesUp)
@@ -426,6 +442,10 @@ public class Search
             {
                 alpha=score;
             }
+        }
+        if(inCheck&&legalMoveCount==0)
+        {
+            return -checkmate+individualMovementCount;
         }
         return alpha;
     }
