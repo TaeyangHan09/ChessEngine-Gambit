@@ -95,7 +95,13 @@ public class Search
         if(nullAllowed&&!inCheck&&depth>=3&&beta<checkmate-1000&&hasPieces(board)&&Evaluator.evaluate(board)>=beta)
         {
             board.makeNullMove();
-            int nullMoveScore = -negamax(board,depth-3,individualMovementCount+1,-beta,-beta+1,false);
+            int nullMoveReduction=2+depth/4;
+            int nullDepth=depth-1-nullMoveReduction;
+            if(nullDepth<0)
+            {
+                nullDepth=0;
+            }
+            int nullMoveScore = -negamax(board,nullDepth,individualMovementCount+1,-beta,-beta+1,false);
             board.unmakeNullMove();
             if(timesUp)
             {
