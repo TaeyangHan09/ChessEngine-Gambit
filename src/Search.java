@@ -337,7 +337,7 @@ public class Search
         {
             for(int moveNumber=1;moveNumber<64;moveNumber++)
             {
-                lateMoveReduction[depth][moveNumber]=(int)(0.75+Math.log(moveNumber)/2.25);
+                lateMoveReduction[depth][moveNumber]=(int)(0.75+Math.log(depth)*Math.log(moveNumber)/2.25);
             }
         }
     }
