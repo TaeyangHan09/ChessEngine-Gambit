@@ -109,7 +109,11 @@ public class Search
             }
             if(nullMoveScore>=beta)
             {
-                return beta;
+                if(nullMoveScore>=checkmate-1000)
+                {
+                    return beta;
+                }
+                return nullMoveScore;
             }
 
         }
@@ -132,6 +136,7 @@ public class Search
             }
         }
         int bestMove = 0;
+        int bestScore=-checkmate-1;
         int moveNumber = 0;
         boolean mover = board.whiteToMove;
         int legalMoveCount=0;
@@ -199,8 +204,12 @@ public class Search
                         killers[individualMovementCount][0] = move;
                     }
                 }
-                TranspositionTable.store(board.hash, depth,scoreToTable(beta,individualMovementCount), TranspositionTable.lower, move);
-                return beta;
+                TranspositionTable.store(board.hash, depth,scoreToTable(score,individualMovementCount), TranspositionTable.lower, move);
+                return score;
+            }
+            if(score>bestScore)
+            {
+                bestScore=score;
             }
             if(score>alpha)
             {
@@ -222,7 +231,7 @@ public class Search
             return 0;
         }
         int flag;
-        if(alpha>originalAlpha)
+        if(bestScore>originalAlpha)
         {
             flag=TranspositionTable.exact;
         }
@@ -230,8 +239,8 @@ public class Search
         {
             flag=TranspositionTable.upper;
         }
-        TranspositionTable.store(board.hash,depth,scoreToTable(alpha,individualMovementCount),flag,bestMove);
-        return alpha;
+        TranspositionTable.store(board.hash,depth,scoreToTable(bestScore,individualMovementCount),flag,bestMove);
+        return bestScore;
     }
     private static final int[] value = {0,100,320,330,500,900,20000};
     private static boolean hasPieces(Board board)
@@ -449,13 +458,15 @@ public class Search
             return 0;
         }
         boolean inCheck = MoveGenerator.isKingAttacked(board,board.whiteToMove);
+        int bestScore=-checkmate-1;
         if(!inCheck)
         {
             int currentEval = Evaluator.evaluate(board);
             if(currentEval>=beta)
             {
-                return beta;
+                return currentEval;
             }
+            bestScore=currentEval;
             if(currentEval>alpha)
             {
                 alpha = currentEval;
@@ -482,7 +493,11 @@ public class Search
             }
             if(score>=beta)
             {
-                return beta;
+                return score;
+            }
+            if(score>bestScore)
+            {
+                bestScore=score;
             }
             if(score>alpha)
             {
@@ -493,7 +508,7 @@ public class Search
         {
             return -checkmate+individualMovementCount;
         }
-        return alpha;
+        return bestScore;
     }
     private static int scoreToTable(int score,int individualmovementcount)
     {
