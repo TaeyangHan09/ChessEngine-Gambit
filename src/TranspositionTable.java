@@ -6,24 +6,26 @@ public class TranspositionTable
     private static final int size = 1<<20;
     private static final int mask=size-1;
     private static final long[] keys=new long[size];
-    private static final int[] depths=new int[size];
-    private static final int[] scores=new int[size];
-    private static final int[] flags=new int[size];
-    private static final int[] moves=new int[size];
+private static final long[] packedEntry=new long[size];
+private static long pack(int depth,int score,int flag,int move)
+{
+    long packed=(long)(depth&0xFF);
+    packed|=((long)(flag&3))<<8;
+    packed|=((long)(move&0xFFFFF))<<10;
+    packed|=((long)score)<<32;
+    return packed;
+}
     public static void store(long hash,int depth,int score,int flag,int move)
     {
         int index = (int)(hash&mask);
         if(keys[index]==hash&&move==0)
         {
-            move = moves[index];
+            move = moveAt(index);
         }
-        if(keys[index]!=hash||depth>=depths[index]-2)
+        if(keys[index]!=hash||depth>=depthAt(index)-2)
         {
             keys[index] = hash;
-            depths[index] = depth;
-            scores[index] = score;
-            flags[index] = flag;
-            moves[index]=move;
+            packedEntry[index]=pack(depth, score, flag, move);
         }
     }
     public static int find(long hash)
@@ -40,26 +42,23 @@ public class TranspositionTable
         for(int i=0;i<size;i++)
         {
             keys[i] = 0;
-            depths[i]=0;
-            scores[i]=0;
-            flags[i]=0;
-            moves[i]=0;
+            packedEntry[i]=0;
         }
     }
     public static int depthAt(int index)
     {
-        return depths[index];
+        return (int)(packedEntry[index]&0xFF);
     }
     public static int scoreAt(int index)
     {
-        return scores[index];
+        return (int)(packedEntry[index]>>32);
     }
     public static int flagAt(int index)
     {
-        return flags[index];
+        return ((int)(packedEntry[index]>>8)&3);
     }
     public static int moveAt(int index)
     {
-        return moves[index];
+        return (int)((packedEntry[index]>>10)&0xFFFFF);
     }
 }

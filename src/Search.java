@@ -92,7 +92,6 @@ public class Search
                 return transpositionTableScore;
             }
         }
-        int[] moves=MoveGenerator.generateMove(board);
         if(nullAllowed&&!inCheck&&depth>=3&&beta<checkmate-1000&&hasPieces(board)&&Evaluator.evaluate(board)>=beta)
         {
             board.makeNullMove();
@@ -108,6 +107,7 @@ public class Search
             }
 
         }
+        int[] moves=MoveGenerator.generateMove(board);
         moves=orderMoves(board,moves,individualMovementCount);
         if(useTable&&transpositionTableIndex!=-1)
         {
@@ -287,10 +287,11 @@ public class Search
         }
         return score;
     }
+    private static final int [] orderScores =new int[256];
     private static int[] orderMoves(Board board,int[] moves,int individualMovementCount)
     {
         int n=moves.length;
-        int[] scores=new int[n];
+        int[] scores=orderScores;
         for(int i=0; i<n;i++)
         {
             scores[i] = scoreMove(board,moves[i],individualMovementCount);

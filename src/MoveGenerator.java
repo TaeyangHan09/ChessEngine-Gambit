@@ -40,8 +40,10 @@ public class MoveGenerator
     {
         return generateMove(board,false);
     }
-    public static int[] generateMove(Board board,boolean capturesOnly) {
-        int[] moves = new int[256];
+    private static final int[] Messi=new int[256];
+    public static int[] generateMove(Board board,boolean capturesOnly)
+    {
+        int[] moves = Messi;
         int count = 0;
         for (int square = 0; square < 64; square++) {
             int piece = board.squares[square];
@@ -177,7 +179,7 @@ public class MoveGenerator
                     {
                         if(oneStep==promotionRow)
                         {
-                            count = addPromotions(moves,count,square,changedoneStep,false);
+                            count = addPromotions(moves,count,square,changedoneStep,false,capturesOnly);
                         }
                         else if(!capturesOnly)
                         {
@@ -205,7 +207,7 @@ public class MoveGenerator
                         {
                             if(oneStep ==promotionRow)
                             {
-                                count = addPromotions(moves,count,square,captureSquare,true);
+                                count = addPromotions(moves,count,square,captureSquare,true,capturesOnly);
                             }
                             else
                             {
@@ -260,9 +262,14 @@ public class MoveGenerator
                 }
                 return count;
             }
-            private static int addPromotions(int[] moves,int count, int from, int to, boolean capture)
+            private static int addPromotions(int[] moves,int count, int from, int to, boolean capture,boolean queenOnly)
             {
-                for(int i=0;i<4;i++)
+                int firstPromotion=0;
+                if(queenOnly)
+                {
+                    firstPromotion=3;
+                }
+                for(int i=firstPromotion;i<4;i++)
                 {
                     moves[count] = Move.bitpack(from,to,promotionPieces[i],capture,false,false,false);
                     count++;
