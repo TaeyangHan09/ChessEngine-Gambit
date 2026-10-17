@@ -144,17 +144,26 @@ public class Search
             {
                 reduce =true;
             }
-            if(reduce)
+            if(moveNumber==0)
             {
-                score = -negamax(board,depth -2,individualMovementCount+1,-beta,-alpha,true);
-                if(score>alpha)
-                {
-                    score = -negamax(board,depth-1,individualMovementCount+1,-beta,-alpha,true);
-                }
+                score=-negamax(board,depth-1,individualMovementCount+1,-beta,-alpha,true);
             }
             else
             {
-                score = -negamax(board,depth-1,individualMovementCount+1,-beta,-alpha,true);
+                int reduction=0;
+                if(reduce)
+                {
+                    reduction=1;
+                }
+                score=-negamax(board,depth-1-reduction,individualMovementCount+1,-alpha-1,-alpha,true);
+                if(score>alpha&&reduction>0)
+                {
+                    score=-negamax(board,depth-1,individualMovementCount+1,-alpha-1,-alpha,true);
+                }
+                if(score>alpha&&score<beta)
+                {
+                    score=-negamax(board,depth-1,individualMovementCount+1,-beta,-alpha,true);
+                }
             }
             board.unmakeMove();
             if(timesUp)
@@ -362,9 +371,23 @@ public class Search
             int alpha = -checkmate - 1;
             int beta = checkmate + 1;
             int sofarBest = 0;
+            boolean firstRootMove=true;
             for (int move : rootMoves) {
                 board.makeMove(move);
-                int score = -negamax(board, depth - 1, 1, -beta, -alpha,true);
+                int score;
+                if(firstRootMove)
+                {
+                    score=-negamax(board,depth-1,1,-beta,-alpha,true);
+                    firstRootMove=false;
+                }
+                else
+                {
+                    score=-negamax(board,depth-1,1,-alpha-1,-alpha,true);
+                    if(score>alpha&&!timesUp)
+                    {
+                        score=-negamax(board,depth-1,1,-beta,-alpha,true);
+                    }
+                }
                 board.unmakeMove();
                 if (timesUp)
                 {
