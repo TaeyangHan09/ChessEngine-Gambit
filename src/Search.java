@@ -92,7 +92,17 @@ public class Search
                 return transpositionTableScore;
             }
         }
-        if(nullAllowed&&!inCheck&&depth>=3&&beta<checkmate-1000&&hasPieces(board)&&Evaluator.evaluate(board)>=beta)
+        int staticEval=0;
+        if(!inCheck)
+        {
+            staticEval=Evaluator.evaluate(board);
+        }
+        boolean pvNode=beta-alpha>1;
+        if(!pvNode&&!inCheck&&depth<=6&&beta<checkmate-1000&&beta>-checkmate+1000&&staticEval-120*depth>=beta)
+        {
+            return staticEval;
+        }
+        if(nullAllowed&&!inCheck&&depth>=3&&beta<checkmate-1000&&hasPieces(board)&&staticEval>=beta)
         {
             board.makeNullMove();
             int nullMoveReduction=2+depth/4;
