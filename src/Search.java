@@ -479,7 +479,7 @@ public class Search
             }
             bestMove = sofarBest;
             previousScore=alpha;
-            System.out.println("info depth "+depth+" score "+scoreToUci(alpha)+" nodes "+positionSeen+" time "+(System.nanoTime()-startTime)/1000000);
+            System.out.println("info depth "+depth+" score "+scoreToUci(alpha)+" nodes "+positionSeen+" time "+(System.nanoTime()-startTime)/1000000+" pv "+principalVariation(board,bestMove,depth));
             for (int i = 0; i < rootMoves.length; i++) {
                 if (rootMoves[i] == bestMove) {
                     for (int j = i; j > 0; j--) {
@@ -491,6 +491,42 @@ public class Search
             }
         }
         return bestMove;
+    }
+    private static String principalVariation(Board board,int firstMove,int depth)
+    {
+        String line=Uci.moveToString(firstMove);
+        board.makeMove(firstMove);
+        int individualMovementCount=1;
+        while(individualMovementCount<depth)
+        {
+            int transpositionTableIndex=TranspositionTable.find(board.hash);
+            if(transpositionTableIndex==-1)
+            {
+                break;
+            }
+            int tableMove=TranspositionTable.moveAt(transpositionTableIndex);
+            boolean isLegal=false;
+            for(int move:MoveGenerator.generateLegalMoves(board))
+            {
+                if(move==tableMove)
+                {
+                    isLegal=true;
+                    break;
+                }
+            }
+            if(!isLegal)
+            {
+                break;
+            }
+            line=line+" "+Uci.moveToString(tableMove);
+            board.makeMove(tableMove);
+            individualMovementCount++;
+        }
+        for(int i=0;i<individualMovementCount;i++)
+        {
+            board.unmakeMove();
+        }
+        return line;
     }
     private static String scoreToUci(int score)
     {

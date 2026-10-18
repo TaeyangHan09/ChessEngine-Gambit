@@ -3,7 +3,7 @@ import java.io.InputStreamReader;
 public class Uci
 {
     private static Board board=Board.fromFen(Board.STARTING_POSITION);
-    private static String moveToString(int move)
+    public static String moveToString(int move)
     {
         String viscabarca=Board.squareNotation(Move.unbitpackcurrentPosition(move))+Board.squareNotation(Move.unbitpackchangedPosition(move));
         int promotionLetter = Move.unbitpackpromotionPosition(move);
