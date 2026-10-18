@@ -479,7 +479,7 @@ public class Search
             }
             bestMove = sofarBest;
             previousScore=alpha;
-            System.out.println("info depth "+depth+" score cp "+alpha+" nodes "+positionSeen+" time "+(System.nanoTime()-startTime)/1000000);
+            System.out.println("info depth "+depth+" score "+scoreToUci(alpha)+" nodes "+positionSeen+" time "+(System.nanoTime()-startTime)/1000000);
             for (int i = 0; i < rootMoves.length; i++) {
                 if (rootMoves[i] == bestMove) {
                     for (int j = i; j > 0; j--) {
@@ -491,6 +491,20 @@ public class Search
             }
         }
         return bestMove;
+    }
+    private static String scoreToUci(int score)
+    {
+        if(score>checkmate-1000)
+        {
+            int individualMovementCount=checkmate-score;
+            return"mate "+(individualMovementCount+1)/2;
+        }
+        if(score<-checkmate+1000)
+        {
+            int individualMovementCount=checkmate+score;
+            return"mate -"+(individualMovementCount+1)/2;
+        }
+        return "cp "+score;
     }
     private static int quiescence(Board board,int alpha,int beta,int individualMovementCount)
     {
