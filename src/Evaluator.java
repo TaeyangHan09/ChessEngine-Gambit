@@ -165,7 +165,7 @@ public class Evaluator
             {
             if(isPassedPawn(square,false,whiteFrontPawnRow,blackFrontPawnRow))
                 {
-                    score=score-passedPawnBonus[square/8-1];
+                    score=score-passedPawnBonus[square/8-1]*(48-gamePhase)/24;
                 }
             }
         }
@@ -572,7 +572,7 @@ public class Evaluator
         {
             score=score/8;
         }
-        if(score>0&&!whiteHasPawns&&blackPieceMaterial-whitePieceMaterial<400)
+        if(score<0&&!blackHasPawns&&blackPieceMaterial-whitePieceMaterial<400)
         {
             score=score/8;
         }
