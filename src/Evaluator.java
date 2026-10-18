@@ -554,7 +554,7 @@ public class Evaluator
                 int column=square%8;
                 if(whitePawny[column]==0&&blackPawny[column]==0)
                 {
-                    score=score+rookSemiOpenFileBonus;
+                    score=score+rookOpenFileBonus;
                 }
                 else if(whitePawny[column]==0)
                 {
@@ -566,11 +566,11 @@ public class Evaluator
                 int column=square%8;
                 if(whitePawny[column]==0&&blackPawny[column]==0)
                 {
-                    score=score-rookSemiOpenFileBonus;
+                    score=score-rookOpenFileBonus;
                 }
                 else if(blackPawny[column]==0)
                 {
-                    score+=score-rookSemiOpenFileBonus;
+                    score=score-rookSemiOpenFileBonus;
                 }
             }
         }
