@@ -388,6 +388,14 @@ public class Evaluator
         int[] whiteFrontPawnRow={-1,-1,-1,-1,-1,-1,-1,-1};
         int[] blackFrontPawnRow={8,8,8,8,8,8,8,8};
         int mobilityScore=0;
+        int whiteMinors=0;
+        int blackMinors=0;
+        int whiteKnights=0;
+        int blackKnights=0;
+        int whiteMajors=0;
+        int blackMajors=0;
+        int whitePieceMaterial=0;
+        int blackPieceMaterial=0;
         for(int square=0;square<64;square++)
         {
             int piece =board.squares[square];
@@ -396,6 +404,39 @@ public class Evaluator
                 continue;
             }
             int absolutevalue = Math.abs(piece);
+            if(absolutevalue==Board.Knight||absolutevalue==Board.Bishop)
+            {
+                if(piece>0)
+                {
+                    whiteMinors++;
+                }
+                else
+                {
+                    blackMinors++;
+                }
+            }
+            if(absolutevalue==Board.Knight)
+            {
+                if(piece>0)
+                {
+                    whiteKnights++;
+                }
+                else
+                {
+                    blackKnights++;
+                }
+            }
+            if(absolutevalue!=Board.Pawn&&absolutevalue!=Board.King)
+            {
+                if(piece>0)
+                {
+                    whitePieceMaterial+=value[absolutevalue];
+                }
+                else
+                {
+                    blackPieceMaterial+=value[absolutevalue];
+                }
+            }
             if(absolutevalue==Board.Pawn)
             {
                 int column=square%8;
@@ -465,6 +506,42 @@ public class Evaluator
         if(!endgame)
         {
             score=score-kingDangerPenalty(board,true,whitePawny)+kingDangerPenalty(board,false,blackPawny);
+        }
+        boolean whiteHasPawns=false;
+        boolean blackHasPawns=false;
+        for(int column=0;column<8;column++)
+        {
+            if(whitePawny[column]>0)
+            {
+                whiteHasPawns=true;
+            }
+            if(blackPawny[column]>0)
+            {
+                blackHasPawns=true;
+            }
+        }
+        if(!whiteHasPawns&&!blackHasPawns&&whiteMajors==0&&blackMajors==0)
+        {
+            if(whiteMinors<=1&&blackMinors<=1)
+            {
+                return 0;
+            }
+            if(whiteMinors==2&&whiteKnights==2&&blackMinors==0)
+            {
+                return 0;
+            }
+            if(blackMinors==2&&blackKnights==2&&whiteMinors==0)
+            {
+                return 0;
+            }
+        }
+        if(score>0&&!whiteHasPawns&&whitePieceMaterial-blackPieceMaterial<400)
+        {
+            score=score/8;
+        }
+        if(score>0&&!whiteHasPawns&&blackPieceMaterial-whitePieceMaterial<400)
+        {
+            score=score/8;
         }
         if(board.whiteToMove)
         {
