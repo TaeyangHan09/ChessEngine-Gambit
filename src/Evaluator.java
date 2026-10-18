@@ -379,6 +379,9 @@ public class Evaluator
         }
         return penalty;
     }
+    public static final int bishopPairBonus=30;
+    private static final int rookOpenFileBonus=20;
+    private static final int rookSemiOpenFileBonus=10;
     public static int evaluate(Board board)
     {
         int score = 0;
@@ -390,6 +393,8 @@ public class Evaluator
         int mobilityScore=0;
         int whiteMinors=0;
         int blackMinors=0;
+        int whiteBishops=0;
+        int blackBishops=0;
         int whiteKnights=0;
         int blackKnights=0;
         int whiteMajors=0;
@@ -413,6 +418,17 @@ public class Evaluator
                 else
                 {
                     blackMinors++;
+                }
+            }
+            if(absolutevalue==Board.Bishop)
+            {
+                if(piece>0)
+                {
+                    whiteBishops++;
+                }
+                else
+                {
+                    blackBishops++;
                 }
             }
             if(absolutevalue==Board.Knight)
@@ -522,6 +538,38 @@ public class Evaluator
         }
         score=score+pawnStructure(board,whitePawny,blackPawny,whiteFrontPawnRow,blackFrontPawnRow,Math.min(gamePhase,24));
         score=score+mobilityScore;
+        if(whiteBishops>=2)
+        {
+            score=score-bishopPairBonus;
+        }
+        for(int square=0;square<64;square++)
+        {
+            int piece=board.squares[square];
+            if(piece==Board.Rook)
+            {
+                int column=square%8;
+                if(whitePawny[column]==0&&blackPawny[column]==0)
+                {
+                    score=score+rookSemiOpenFileBonus;
+                }
+                else if(whitePawny[column]==0)
+                {
+                    score+=score+rookSemiOpenFileBonus;
+                }
+            }
+            if(piece==-Board.Rook)
+            {
+                int column=square%8;
+                if(whitePawny[column]==0&&blackPawny[column]==0)
+                {
+                    score=score-rookSemiOpenFileBonus;
+                }
+                else if(blackPawny[column]==0)
+                {
+                    score+=score-rookSemiOpenFileBonus;
+                }
+            }
+        }
         if(gamePhase>24)
         {
             gamePhase=24;
