@@ -353,6 +353,7 @@ public class Search
     public static boolean fixedMoveTime=false;
     private static long doomsdayClock=Long.MAX_VALUE;
     private static boolean timesUp = false;
+    public static volatile boolean stopRequested=false;
     private static long positionSeen = 0;
     private static boolean useTable=true;
     private static final int[][] lateMoveReduction=new int[64][64];
@@ -370,6 +371,11 @@ public class Search
     private static final int[][][] history = new int[2][64][64];
     private static void peekAtClock()
     {
+        if(stopRequested)
+        {
+            timesUp=true;
+            return;
+        }
         if((positionSeen&2047)==0&&System.nanoTime()>=doomsdayClock)
         {
             timesUp=true;

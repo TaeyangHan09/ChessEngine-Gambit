@@ -98,14 +98,32 @@ public class Uci
         {
             timeMs=20;
         }
-        int best =Search.search(board,depth,timeMs);
-        if(best==0)
+        for(String word:t)
         {
-            System.out.println("bestmove 0000");
+            if(word.equals("infinite"))
+            {
+                depth=64;
+                timeMs=24L*60*60*1000;
+                Search.fixedMoveTime=true;
+            }
         }
-        else
+        Search.stopRequested=false;
+        searchThread=new SearchThread(board,depth,timeMs);
+        searchThread.start();
+    }
+    private static Thread searchThread=null;
+    private static void waitForSearch()
+    {
+        if(searchThread!=null)
         {
-            System.out.println("bestmove "+moveToString(best));
+            try
+            {
+                searchThread.join();
+            }
+            catch(InterruptedException e)
+            {
+            }
+            searchThread=null;
         }
     }
     public static void main(String[] args) throws Exception
@@ -128,22 +146,34 @@ public class Uci
             }
             else if(command.equals("ucinewgame"))
             {
+                waitForSearch();
                 board = Board.fromFen(Board.STARTING_POSITION);
                 TranspositionTable.clear();
             }
-            else if(command.equals("position")){
+            else if(command.equals("position"))
+            {
+                waitForSearch();
                 handlePosition(t);
             }
             else if(command.equals("go"))
             {
+                waitForSearch();
                 handleGo(t);
+            }
+            else if(command.equals("stop"))
+            {
+                Search.stopRequested=true;
+                waitForSearch();
             }
             else if(command.equals("quit"))
             {
+                Search.stopRequested=true;
+                waitForSearch();
                 return;
             }
             line =in.readLine();
         }
+        waitForSearch();
     }
 }
 
