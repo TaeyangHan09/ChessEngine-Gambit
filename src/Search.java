@@ -1,53 +1,6 @@
 public class Search
 {
     private static final int checkmate = 100000;
-    public static int negamaxWithoutPruning(Board board, int depth, int individualMoveCount)
-    {
-        int[] moves = MoveGenerator.generateLegalMoves(board);
-        if(moves.length==0)
-        {
-            if(MoveGenerator.isKingAttacked(board, board.whiteToMove))
-            {
-                return -checkmate+individualMoveCount;
-            }
-            return 0;
-        }
-        if(depth==0)
-        {
-            return Evaluator.evaluate(board);
-        }
-        int best = -checkmate-1;
-        for(int move:moves)
-        {
-            board.makeMove(move);
-            int score = -negamaxWithoutPruning(board,depth-1,individualMoveCount+1);
-            board.unmakeMove();
-            if(score>best)
-            {
-                best=score;
-            }
-        }
-        return best;
-    }
-    public static int findBestMove(Board board,int depth)
-    {
-        int[] moves = MoveGenerator.generateLegalMoves(board);
-        int bestMove = 0;
-        int alpha =-checkmate-1;
-        int beta = checkmate+1;
-        for(int move:moves)
-        {
-            board.makeMove(move);
-            int score = -negamaxWithoutPruning(board,depth -1,1);
-            board.unmakeMove();
-            if (score>alpha)
-            {
-                alpha =score;
-                bestMove = move;
-            }
-        }
-        return bestMove;
-    }
     public static int negamax(Board board,int depth,int individualMovementCount,int alpha,int beta,boolean nullAllowed)
     {
         positionSeen++;
@@ -75,7 +28,7 @@ public class Search
         }
         int originalAlpha = alpha;
         int transpositionTableIndex = TranspositionTable.find(board.hash);
-        if(useTable&&transpositionTableIndex!=-1&&TranspositionTable.depthAt(transpositionTableIndex)>=depth)
+        if(transpositionTableIndex!=-1&&TranspositionTable.depthAt(transpositionTableIndex)>=depth)
         {
             int transpositionTableScore = scorefromTable(TranspositionTable.scoreAt(transpositionTableIndex),individualMovementCount);
             int transpositionTableFlag = TranspositionTable.flagAt(transpositionTableIndex);
@@ -129,7 +82,7 @@ public class Search
         }
         int[] moves=MoveGenerator.generateMove(board);
         moves=orderMoves(board,moves,individualMovementCount);
-        if(useTable&&transpositionTableIndex!=-1)
+        if(transpositionTableIndex!=-1)
         {
             int tableMove= TranspositionTable.moveAt((transpositionTableIndex));
             for(int i=0;i<moves.length;i++)
@@ -355,7 +308,6 @@ public class Search
     private static boolean timesUp = false;
     public static volatile boolean stopRequested=false;
     private static long positionSeen = 0;
-    private static boolean useTable=true;
     private static final int[][] lateMoveReduction=new int[64][64];
     static
     {

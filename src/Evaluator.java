@@ -106,23 +106,6 @@ public class Evaluator
         return kingValueTable;
 
     }
-    private static boolean isEndgame(Board board)
-    {
-        int nonPawnMaterial=0;
-        for(int square = 0;square<64;square++)
-        {
-            int pieceType = Math.abs((board.squares[square]));
-            if(pieceType==Board.Knight||pieceType==Board.Bishop||pieceType==Board.Rook||pieceType==Board.Queen)
-            {
-                nonPawnMaterial = nonPawnMaterial+value[pieceType];
-            }
-        }
-        if(nonPawnMaterial<=2600)
-        {
-            return true;
-        }
-        return false;
-    }
     private static final int[] value = {0,100,320,330,500,900,0};
     private static final int doubledPawnPenalty = 15;
     private static final int isolatedPawnPenalty = 15;
@@ -276,54 +259,6 @@ public class Evaluator
             }
         }
         return count;
-    }
-    private static int mobility(Board board)
-    {
-        int score = 0;
-        for(int square=0;square<64;square++)
-        {
-            int piece=board.squares[square];
-            if(piece==Board.EMPTY)
-            {
-                continue;
-            }
-            int pieceType=Math.abs(piece);
-            int pieceMobility=0;
-            int weight=0;
-            if(pieceType==Board.Knight)
-            {
-                pieceMobility= countKnightSquare(board,square);
-                weight=knightMobilityWeight;
-            }
-            else if(pieceType==Board.Bishop)
-            {
-                pieceMobility=countSliderSquares(board,square,mobilityBishopRow,mobilityBishopColumn);
-                weight=bishopMobilityWeight;
-            }
-            else if(pieceType==Board.Rook)
-            {
-                pieceMobility=countSliderSquares(board,square,mobilityRookRow,mobilityRookColumn);
-                weight=rookMobilityWeight;
-            }
-            else if(pieceType==Board.Queen)
-            {
-                pieceMobility = countSliderSquares(board,square,mobilityRookRow,mobilityRookColumn)+countSliderSquares(board,square,mobilityBishopRow,mobilityBishopColumn);
-                weight=queenMobilityWeight;
-            }
-            if(weight==0)
-            {
-                continue;
-            }
-            if(piece>0)
-            {
-                score=score+pieceMobility*weight;
-            }
-            else
-            {
-                score=score-pieceMobility*weight;
-            }
-        }
-        return score;
     }
     private static final int missingShieldPenalty = 10;
     private static final int openFilePnenalty = 15;

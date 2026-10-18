@@ -15,7 +15,7 @@ public class Board {
     public final int[] kingSquare={-1,-1};
     public static final boolean debugMode=false;
     public static final String STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    private final int[] moveHistory = new int[1024];
+    private final int[] moveHistory = new int[4096];
     private final int[] movedpieceHistory = new int[1024];
     private final int[] capturedPieceHistory = new int[1024];
     private final int[] enPassantHistory = new int[1024];
