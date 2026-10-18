@@ -90,6 +90,20 @@ public class Board {
             return to;
         }
     }
+    private boolean enemyPawnBeside(int to,int piece)
+    {
+        int column=to%8;
+        int enemyPawn=-piece;
+        if(column>0&&squares[to-1]==enemyPawn)
+        {
+            return true;
+        }
+        if(column<7&&squares[to+1]==enemyPawn)
+        {
+            return true;
+        }
+        return false;
+    }
     public void makeMove(int move)
     {
         int from = Move.unbitpackcurrentPosition(move);
@@ -147,7 +161,7 @@ public class Board {
                 squares[3] = -Board.Rook;
             }
         }
-        if(isDoublePush)
+        if(isDoublePush&&enemyPawnBeside(to,piece))
         {
            enPassantSquare = (from+to)/2;
         }

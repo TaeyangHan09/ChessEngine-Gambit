@@ -3,18 +3,31 @@ public class TranspositionTable
     public static final int exact = 0;
     public static final int lower = 1;
     public static final int upper = 2;
-    private static final int size = 1<<20;
-    private static final int mask=size-1;
-    private static final long[] keys=new long[size];
-private static final long[] packedEntry=new long[size];
-private static long pack(int depth,int score,int flag,int move)
-{
-    long packed=(long)(depth&0xFF);
-    packed|=((long)(flag&3))<<8;
-    packed|=((long)(move&0xFFFFF))<<10;
-    packed|=((long)score)<<32;
-    return packed;
-}
+    private static int size = 1<<20;
+    private static int mask=size-1;
+    private static long[] keys=new long[size];
+    private static long[] packedEntry=new long[size];
+    public static void resize(int megabytes)
+    {
+        long bytes=(long)megabytes*1024*1024;
+        int newSize=1;
+        while((long)newSize*2*16<=bytes)
+        {
+            newSize=newSize*2;
+        }
+        size=newSize;
+        mask=size-1;
+        keys=new long[size];
+        packedEntry=new long[size];
+    }
+    private static long pack(int depth,int score,int flag,int move)
+    {
+        long packed=(long)(depth&0xFF);
+        packed|=((long)(flag&3))<<8;
+        packed|=((long)(move&0xFFFFF))<<10;
+        packed|=((long)score)<<32;
+        return packed;
+    }
     public static void store(long hash,int depth,int score,int flag,int move)
     {
         int index = (int)(hash&mask);

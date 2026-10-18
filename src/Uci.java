@@ -80,11 +80,11 @@ public class Uci
             }
             if(board.whiteToMove&&t[i].equals("wtime"))
             {
-                timeMs = Long.parseLong(t[i+1]);
+                myTimeMs = Long.parseLong(t[i+1]);
             }
             if(!board.whiteToMove&&t[i].equals("btime"))
             {
-                timeMs=Long.parseLong(t[i+1]);
+                myTimeMs=Long.parseLong(t[i+1]);
             }
             if(t[i].equals("movestogo"))
             {
@@ -155,7 +155,16 @@ public class Uci
             {
                 System.out.println("id name Gambit");
                 System.out.println("id author Shawn the Goat");
+                System.out.println("option name Hash type spin default 16 min 1 max 1024");
                 System.out.println("uciok");
+            }
+            else if(command.equals("setoption"))
+            {
+                waitForSearch();
+                if(t.length>=5&&t[2].equals("Hash"))
+                {
+                    TranspositionTable.resize(Integer.parseInt(t[4]));
+                }
             }
             else if(command.equals("isready"))
             {
