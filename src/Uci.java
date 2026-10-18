@@ -110,7 +110,11 @@ public class Uci
             timeMs=myTimeMs/divisor;
         }
         timeMs = timeMs+incrementMs/2;
-        timeMs=timeMs-30;
+        if(myTimeMs>=0&&timeMs>myTimeMs/2)
+        {
+            timeMs=myTimeMs/2;
+        }
+        timeMs=timeMs-100;
         if(timeMs<20)
         {
             timeMs=20;

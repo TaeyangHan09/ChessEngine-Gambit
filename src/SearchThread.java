@@ -11,7 +11,16 @@ public class SearchThread extends Thread
     }
     public void run()
     {
-        int best=Search.search(board,depth,timeMs);
+        int best;
+        try
+        {
+            best=Search.search(board,depth,timeMs);
+        }
+        catch(Exception e)
+        {
+            System.out.println("info string search error "+e);
+            best=Search.safeMove;
+        }
         if(best==0)
         {
             System.out.println("bestmove 0000");

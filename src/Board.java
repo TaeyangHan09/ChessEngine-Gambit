@@ -16,12 +16,12 @@ public class Board {
     public static final boolean debugMode=false;
     public static final String STARTING_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     private final int[] moveHistory = new int[4096];
-    private final int[] movedpieceHistory = new int[1024];
-    private final int[] capturedPieceHistory = new int[1024];
-    private final int[] enPassantHistory = new int[1024];
-    private final int[] castlingHistory = new int[1024];
-    private final int[] halfmoveHistory = new int[1024];
-    private final long[] hashHistory = new long[1024];
+    private final int[] movedpieceHistory = new int[4096];
+    private final int[] capturedPieceHistory = new int[4096];
+    private final int[] enPassantHistory = new int[4096];
+    private final int[] castlingHistory = new int[4096];
+    private final int[] halfmoveHistory = new int[4096];
+    private final long[] hashHistory = new long[4096];
     private int individualmoveCount = 0;
     private int castlingTracker()
     {

@@ -306,6 +306,7 @@ public class Search
     public static boolean fixedMoveTime=false;
     private static long doomsdayClock=Long.MAX_VALUE;
     private static boolean timesUp = false;
+    public static volatile int safeMove=0;
     public static volatile boolean stopRequested=false;
     private static long positionSeen = 0;
     private static final int[][] lateMoveReduction=new int[64][64];
@@ -360,6 +361,7 @@ public class Search
         }
         rootMoves = orderMoves(board, rootMoves,0);
         int bestMove = rootMoves[0];
+        safeMove=bestMove;
         int previousScore=0;
         for (int depth = 1; depth <= maxDepth; depth++)
         {
@@ -436,6 +438,7 @@ public class Search
                 break;
             }
             bestMove = sofarBest;
+            safeMove=bestMove;
             previousScore=alpha;
             System.out.println("info depth "+depth+" score "+scoreToUci(alpha)+" nodes "+positionSeen+" time "+(System.nanoTime()-startTime)/1000000+" pv "+principalVariation(board,bestMove,depth));
             for (int i = 0; i < rootMoves.length; i++) {
