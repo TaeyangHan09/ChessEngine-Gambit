@@ -48,10 +48,12 @@ public class Uci
             for(i++;i<t.length;i++)
             {
                 int m=StringToMove(t[i]);
-                if(m!=0)
+                if(m==0)
                 {
-                    board.makeMove(m);
+                    System.out.println("info string illegal move "+t[i]);
+                    break;
                 }
+                board.makeMove(m);
             }
         }
 
@@ -62,6 +64,8 @@ public class Uci
         Search.fixedMoveTime=false;
         long incrementMs = 0;
         int depth=64;
+        long myTimeMs=-1;
+        int moveToGo=0;
         for(int i=1;i<t.length-1;i++)
         {
             if(t[i].equals("movetime"))
@@ -76,11 +80,15 @@ public class Uci
             }
             if(board.whiteToMove&&t[i].equals("wtime"))
             {
-                timeMs = Long.parseLong(t[i+1])/30;
+                timeMs = Long.parseLong(t[i+1]);
             }
             if(!board.whiteToMove&&t[i].equals("btime"))
             {
-                timeMs=Long.parseLong(t[i+1])/30;
+                timeMs=Long.parseLong(t[i+1]);
+            }
+            if(t[i].equals("movestogo"))
+            {
+                moveToGo=Integer.parseInt(t[i+1]);
             }
             if(board.whiteToMove&&t[i].equals("winc"))
             {
@@ -91,6 +99,15 @@ public class Uci
                 incrementMs=Long.parseLong(t[i+1]);
             }
 
+        }
+        if(myTimeMs>=0)
+        {
+            int divisor=30;
+            if(moveToGo>0)
+            {
+                divisor=Math.min(moveToGo+1,30);
+            }
+            timeMs=myTimeMs/divisor;
         }
         timeMs = timeMs+incrementMs/2;
         timeMs=timeMs-30;
