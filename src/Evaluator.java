@@ -148,7 +148,7 @@ public class Evaluator
         }
         return true;
     }
-    private static int pawnStructure(Board board,int[] whitePawny,int[] blackPawny,int[] whiteFrontPawnRow,int[] blackFrontPawnRow)
+    private static int pawnStructure(Board board,int[] whitePawny,int[] blackPawny,int[] whiteFrontPawnRow,int[] blackFrontPawnRow,int gamePhase)
     {
         int score=0;
         for(int square=0;square<64;square++)
@@ -158,7 +158,7 @@ public class Evaluator
             {
             if(isPassedPawn(square,true,whiteFrontPawnRow,blackFrontPawnRow))
                 {
-                    score = score+passedPawnBonus[6-square/8];
+                    score = score+passedPawnBonus[6-square/8]*(48-gamePhase)/24;
                 }
             }
             if(piece==-Board.Pawn)
@@ -382,7 +382,7 @@ public class Evaluator
     public static int evaluate(Board board)
     {
         int score = 0;
-        boolean endgame = isEndgame(board);
+        int gamePhase=0;
         int[] whitePawny=new int[8];
         int[] blackPawny=new int[8];
         int[] whiteFrontPawnRow={-1,-1,-1,-1,-1,-1,-1,-1};
@@ -425,6 +425,29 @@ public class Evaluator
                 {
                     blackKnights++;
                 }
+            }
+            if(absolutevalue==Board.Rook||absolutevalue==Board.Queen)
+            {
+                if(piece>0)
+                {
+                    whiteMajors++;
+                }
+                else
+                {
+                    blackMajors++;
+                }
+            }
+            if(absolutevalue==Board.Knight||absolutevalue==Board.Bishop)
+            {
+                gamePhase+=1;
+            }
+            if(absolutevalue==Board.Rook)
+            {
+                gamePhase+=2;
+            }
+            if(absolutevalue==Board.Queen)
+            {
+                gamePhase+=4;
             }
             if(absolutevalue!=Board.Pawn&&absolutevalue!=Board.King)
             {
@@ -483,15 +506,11 @@ public class Evaluator
             {
                 mobilityScore-=pieceMobility;
             }
-            int[] specificTable;
-            if(absolutevalue==board.King&&endgame)
+            if(absolutevalue==board.King)
             {
-                specificTable=endgameKingValueTable;
+                continue;
             }
-            else
-            {
-                specificTable=tableAll(absolutevalue);
-            }
+            int [] specificTable=tableAll(absolutevalue);
             if(piece>0)
             {
                 score+=value[absolutevalue]+specificTable[square];
@@ -501,12 +520,26 @@ public class Evaluator
                 score-=value[absolutevalue]+specificTable[square^56];
             }
         }
-        score=score+pawnStructure(board,whitePawny,blackPawny,whiteFrontPawnRow,blackFrontPawnRow);
+        score=score+pawnStructure(board,whitePawny,blackPawny,whiteFrontPawnRow,blackFrontPawnRow,Math.min(gamePhase,24));
         score=score+mobilityScore;
-        if(!endgame)
+        if(gamePhase>24)
         {
-            score=score-kingDangerPenalty(board,true,whitePawny)+kingDangerPenalty(board,false,blackPawny);
+            gamePhase=24;
         }
+        int middlegameKing=0;
+        int endgameKing=0;
+        if(board.kingSquare[0]!=-1)
+        {
+            middlegameKing+=kingValueTable[board.kingSquare[0]];
+            endgameKing+=endgameKingValueTable[board.kingSquare[0]];
+        }
+        if(board.kingSquare[1]!=-1)
+        {
+            middlegameKing-=kingValueTable[board.kingSquare[1]^56];
+            endgameKing-=endgameKingValueTable[board.kingSquare[1]^56];
+        }
+        middlegameKing=middlegameKing-kingDangerPenalty(board,true,whitePawny)+kingDangerPenalty(board,false,blackPawny);
+        score=score+(middlegameKing*gamePhase+endgameKing*(24-gamePhase))/24;
         boolean whiteHasPawns=false;
         boolean blackHasPawns=false;
         for(int column=0;column<8;column++)
