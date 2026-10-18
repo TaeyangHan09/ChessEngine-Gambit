@@ -540,6 +540,10 @@ public class Evaluator
         score=score+mobilityScore;
         if(whiteBishops>=2)
         {
+            score=score+bishopPairBonus;
+        }
+        if(blackBishops>=2)
+        {
             score=score-bishopPairBonus;
         }
         for(int square=0;square<64;square++)
@@ -554,7 +558,7 @@ public class Evaluator
                 }
                 else if(whitePawny[column]==0)
                 {
-                    score+=score+rookSemiOpenFileBonus;
+                    score=score+rookSemiOpenFileBonus;
                 }
             }
             if(piece==-Board.Rook)
