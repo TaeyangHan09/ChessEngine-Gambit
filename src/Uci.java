@@ -102,14 +102,14 @@ public class Uci
         }
         if(myTimeMs>=0)
         {
-            int divisor=30;
+            int divisor=20;
             if(moveToGo>0)
             {
-                divisor=Math.min(moveToGo+1,30);
+                divisor=Math.min(moveToGo+1,20);
             }
             timeMs=myTimeMs/divisor;
         }
-        timeMs = timeMs+incrementMs/2;
+        timeMs = timeMs+incrementMs*3/4;
         if(myTimeMs>=0&&timeMs>myTimeMs/2)
         {
             timeMs=myTimeMs/2;

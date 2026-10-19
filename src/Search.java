@@ -114,7 +114,7 @@ public class Search
             legalMoveCount++;
             boolean checksOpponent=MoveGenerator.isKingAttacked(board,board.whiteToMove);
             boolean quietMove=!Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0;
-            if(!pvNode&&inCheck&&quietMove&&!checksOpponent&&moveNumber>0&&bestScore>-checkmate+1000)
+            if(!pvNode&&!inCheck&&quietMove&&!checksOpponent&&moveNumber>0&&bestScore>-checkmate+1000)
             {
                 if(depth<=4&&moveNumber>=3+depth*depth)
                 {
