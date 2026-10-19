@@ -206,6 +206,165 @@ public class Search
         return bestScore;
     }
     private static final int[] value = {0,100,320,330,500,900,20000};
+    private static final int[] exchangeValue={0,100,320,330,500,900,20000};
+    private static final int[] seeKnightRow = {-2,-2,-1,-1,1,1,2,2};
+    private static final int[] seeKnightColumn={-1,1,-2,2,-2,2,-1,1};
+    private static final int[] seeDiagonalRow = {-1,-1,1,1};
+    private static final int[] seeDiagonalColumn={-1,1,-1,1};
+    private static final int[] seeStraightRow = {-1,1,0,0};
+    private static final int[] seeStraightColumn={0,0,-1,1};
+    private static final int[] wValue=new int[40];
+    private static int cheapestAttacker(Board board,int target,boolean white,long removedSquare)
+    {
+        int row=target/8;
+        int column=target%8;
+        int sign;
+        if(white)
+        {
+            sign=1;
+        }
+        else
+        {
+            sign=-1;
+        }
+        int pawnRow;
+        if(white)
+        {
+            pawnRow=row+1;
+        }
+        else
+        {
+            pawnRow=row-1;
+        }
+        if(pawnRow>=0&&pawnRow<=7)
+        {
+            for(int columnChange=-1;columnChange<=1;columnChange+=2)
+            {
+                int pawnColumn=column+columnChange;
+                if(pawnColumn<0||pawnColumn>7)
+                {
+                    continue;
+                }
+                int square=pawnRow*8+pawnColumn;
+                if((removedSquare&(1L<<square))==0&&board.squares[square]==sign*Board.Pawn)
+                {
+                    return square;
+                }
+            }
+        }
+        for(int jump=0;jump<8;jump++)
+        {
+            int changedRow=row+seeKnightRow[jump];
+            int changedColumn=column+seeKnightColumn[jump];
+            if(changedRow<0||changedRow>7||changedColumn<0||changedColumn>7)
+            {
+                continue;
+            }
+            int square=changedRow*8+changedColumn;
+            if((removedSquare&(1L<<square))==0&&board.squares[square]==sign*Board.Knight)
+            {
+                return square;
+            }
+        }
+        int bestSquare=-1;
+        int bestValue=Integer.MAX_VALUE;
+        for(int direction=0;direction<8;direction++)
+        {
+            int rowChange;
+            int columnChange;
+            boolean diagonal=direction<4;
+            if(diagonal)
+            {
+                rowChange=seeDiagonalRow[direction];
+                columnChange=seeDiagonalColumn[direction];
+            }
+            else
+            {
+                rowChange=seeStraightRow[direction-4];
+                columnChange=seeStraightColumn[direction-4];
+            }
+            int changedRow=row+rowChange;
+            int changedColumn=column+columnChange;
+            boolean firstStep=true;
+            while(changedRow>=0&&changedRow<=7&&changedColumn>=0&&changedColumn<=7)
+            {
+                int square=changedRow*8+changedColumn;
+                if((removedSquare&(1L<<square))==0&&board.squares[square]!=Board.EMPTY)
+                {
+                    int piece=board.squares[square];
+                    if(piece*sign>0)
+                    {
+                        int pieceType=Math.abs(piece);
+                        boolean canAttack=pieceType==Board.Queen||(diagonal&&pieceType==Board.Bishop)||(!diagonal&&pieceType==Board.Rook)||(firstStep&&pieceType==Board.King);
+                        if(canAttack&&exchangeValue[pieceType]<bestValue)
+                        {
+                            bestValue=exchangeValue[pieceType];
+                            bestSquare=square;
+                        }
+                    }
+                    break;
+                }
+                firstStep=false;
+                changedRow+=rowChange;
+                changedColumn+=columnChange;
+            }
+        }
+        return bestSquare;
+    }
+    private static int staticExchange(Board board,int move)
+    {
+        int from=Move.unbitpackcurrentPosition(move);
+        int to=Move.unbitpackchangedPosition(move);
+        int victim=Math.abs(board.squares[to]);
+        if(Move.unbitpackenPassant(move))
+        {
+            victim=Board.Pawn;
+        }
+        int attackerType=Math.abs(board.squares[from]);
+        long removedSquares=1L<<from;
+        boolean white=board.squares[from]<0;
+        int exchangeDepth=0;
+        wValue[0]=exchangeValue[victim];
+        while(exchangeDepth<38)
+        {
+            exchangeDepth++;
+            wValue[exchangeDepth]=exchangeValue[attackerType]-wValue[exchangeDepth-1];
+            if(Math.max(-wValue[exchangeDepth-1],wValue[exchangeDepth])<0)
+            {
+                break;
+            }
+            int nextSquare=cheapestAttacker(board,to,white,removedSquares);
+            if(nextSquare<0)
+            {
+                break;
+            }
+            attackerType=Math.abs(board.squares[nextSquare]);
+            removedSquares|=1L<<nextSquare;
+            white=!white;
+        }
+        while(--exchangeDepth>0)
+        {
+            wValue[exchangeDepth-1]=Math.max(-wValue[exchangeDepth-1], wValue[exchangeDepth]);
+        }
+        return wValue[0];
+    }
+    private static boolean loseMaterial(Board board,int move)
+    {
+        int from=Move.unbitpackcurrentPosition(move);
+        int to=Move.unbitpackchangedPosition(move);
+        int victim=Math.abs(board.squares[to]);
+        if(Move.unbitpackenPassant(move))
+        {
+            victim=Board.Pawn;
+        }
+        int attackerType=Math.abs(board.squares[from]);
+        if(exchangeValue[attackerType]<=exchangeValue[victim])
+        {
+            return false;
+        }
+        return staticExchange(board,move)<0;
+    }
+
     private static boolean hasPieces(Board board)
     {
         for(int square=0;square<64;square++)
@@ -542,6 +701,10 @@ public class Search
                     victim=Board.Pawn;
                 }
                 if(standPat+value[victim]+200<=alpha)
+                {
+                    continue;
+                }
+                if(loseMaterial(board,move))
                 {
                     continue;
                 }
