@@ -112,9 +112,26 @@ public class Search
                 continue;
             }
             legalMoveCount++;
+            boolean checksOpponent=MoveGenerator.isKingAttacked(board,board.whiteToMove);
+            boolean quietMove=!Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0;
+            if(!pvNode&&inCheck&&quietMove&&!checksOpponent&&moveNumber>0&&bestScore>-checkmate+1000)
+            {
+                if(depth<=4&&moveNumber>=3+depth*depth)
+                {
+                    board.unmakeMove();
+                    moveNumber++;
+                    continue;
+                }
+                if(depth<=3&&staticEval+futilityMargin[depth]<=alpha)
+                {
+                    board.unmakeMove();
+                    moveNumber++;
+                    continue;
+                }
+            }
             int score;
             boolean reduce = false;
-            if(moveNumber>=3&&depth>3&&!inCheck&&!Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0&&!MoveGenerator.isKingAttacked(board,board.whiteToMove))
+            if(moveNumber>=3&&depth>3&&!inCheck&&quietMove&&!checksOpponent)
             {
                 reduce =true;
             }
@@ -206,6 +223,7 @@ public class Search
         return bestScore;
     }
     private static final int[] value = {0,100,320,330,500,900,20000};
+    private static final int[] futilityMargin={0,150,300,450};
     private static final int[] exchangeValue={0,100,320,330,500,900,20000};
     private static final int[] seeKnightRow = {-2,-2,-1,-1,1,1,2,2};
     private static final int[] seeKnightColumn={-1,1,-2,2,-2,2,-1,1};
@@ -344,7 +362,7 @@ public class Search
         }
         while(--exchangeDepth>0)
         {
-            wValue[exchangeDepth-1]=Math.max(-wValue[exchangeDepth-1], wValue[exchangeDepth]);
+            wValue[exchangeDepth-1]=-Math.max(-wValue[exchangeDepth-1], wValue[exchangeDepth]);
         }
         return wValue[0];
     }
