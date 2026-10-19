@@ -401,6 +401,10 @@ public class Search
             }
             int attacker = Math.abs(board.squares[from]);
             score+=10000+value[victim]*10-value[attacker]/10;
+            if(loseMaterial(board,move))
+            {
+                score-=20000;
+            }
         }
         int promo = Move.unbitpackpromotionPosition(move);
         if(promo!=0)
