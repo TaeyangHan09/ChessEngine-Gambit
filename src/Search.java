@@ -50,6 +50,27 @@ public class Search
         {
             staticEval=Evaluator.evaluate(board);
         }
+        if(individualMovementCount<128)
+        {
+            if(inCheck)
+            {
+                staticEvalAt[individualMovementCount]=noEval;
+            }
+            else
+            {
+                staticEvalAt[individualMovementCount]=staticEval;
+            }
+        }
+        boolean improving=false;
+        if(!inCheck&&individualMovementCount>=2&&individualMovementCount<128&&staticEvalAt[individualMovementCount-2]!=noEval&&staticEval>staticEvalAt[individualMovementCount-2])
+        {
+            improving=true;
+        }
+        int improvingStep=0;
+        if(improving)
+        {
+            improvingStep=1;
+        }
         boolean pvNode=beta-alpha>1;
         if(!pvNode&&!inCheck&&depth<=6&&beta<checkmate-1000&&beta>-checkmate+1000&&staticEval-120*depth>=beta)
         {
@@ -124,6 +145,11 @@ public class Search
             boolean quietMove=!Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0;
             if(!pvNode&&!inCheck&&quietMove&&!checksOpponent&&moveNumber>0&&bestScore>-checkmate+1000)
             {
+                int lateMoveCount=3+depth*depth;
+                if(!improving)
+                {
+                    lateMoveCount=lateMoveCount/2+1;
+                }
                 if(depth<=4&&moveNumber>=3+depth*depth)
                 {
                     board.unmakeMove();
@@ -548,6 +574,8 @@ public class Search
     }
     private static final int [][] killers=new int[128][2];
     private static final int[][][] history = new int[2][64][64];
+    private static final int noEval=Integer.MIN_VALUE;
+    private static final int[] staticEvalAt=new int[130];
     private static final int[][] triedQuietMovesAt=new int[128][256];
     private static final int[][] counterMoves=new int[64][64];
     private static int currentCounterMove=0;
@@ -584,6 +612,8 @@ public class Search
         }
         long startTime = System.nanoTime();
         long budgetNanos=timeMs*1000000L;
+        staticEvalAt[0]=noEval;
+        staticEvalAt[1]=noEval;
         int[] rootMoves = MoveGenerator.generateLegalMoves(board);
         if (rootMoves.length == 0) {
             return 0;
