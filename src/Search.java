@@ -81,6 +81,12 @@ public class Search
 
         }
         int[] moves=MoveGenerator.generateMove(board);
+        int previousMove=board.lastMove();
+        currentCounterMove=0;
+        if(previousMove!=0)
+        {
+            currentCounterMove=counterMoves[Move.unbitpackcurrentPosition(previousMove)][Move.unbitpackchangedPosition(previousMove)];
+        }
         moves=orderMoves(board,moves,individualMovementCount);
         if(transpositionTableIndex!=-1)
         {
@@ -178,6 +184,10 @@ public class Search
                         sideIndex = 1;
                     }
                     history[sideIndex][Move.unbitpackcurrentPosition(move)][Move.unbitpackchangedPosition(move)] += depth * depth;
+                    if(previousMove!=0)
+                    {
+                        counterMove[Move.unbitpackcurrentPosition(previousMove)][Move.unbitpackchangedPosition(previousMove)]=move;
+                    }
                     if (individualMovementCount < 128 && killers[individualMovementCount][0] != move)
                     {
                         killers[individualMovementCount][1] = killers[individualMovementCount][0];
@@ -455,7 +465,14 @@ public class Search
             {
                 sideIndex=1;
             }
-            score+=Math.min(history[sideIndex][from][to],6000);
+            if(move==currentCounterMove)
+            {
+                score+=6500;
+            }
+            else
+            {
+                score+=Math.min(history[sideIndex][from][to],6000);
+            }
         }
         return score;
     }
@@ -503,6 +520,8 @@ public class Search
     }
     private static final int [][] killers=new int[128][2];
     private static final int[][][] history = new int[2][64][64];
+    private static final int[][] counterMoves=new int[64][64];
+    private static int currentCounterMove=0;
     private static void peekAtClock()
     {
         if(stopRequested)
@@ -540,6 +559,14 @@ public class Search
         if (rootMoves.length == 0) {
             return 0;
         }
+        for(int from=0;from<64;from++)
+        {
+            for(int to=0;to<64;to++)
+            {
+                counterMoves[from][to]=0;
+            }
+        }
+        currentCounterMove=0;
         rootMoves = orderMoves(board, rootMoves,0);
         int bestMove = rootMoves[0];
         safeMove=bestMove;
@@ -710,6 +737,7 @@ public class Search
             }
         }
         int[] moves = MoveGenerator.generateMove(board,!inCheck);
+        currentCounterMove=0;
         moves=orderMoves(board,moves,128);
         boolean mover = board.whiteToMove;
         int legalMoveCount = 0;

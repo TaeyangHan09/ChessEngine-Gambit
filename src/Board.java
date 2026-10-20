@@ -58,6 +58,14 @@ public class Board {
         }
         return hash;
     }
+    public int lastMove()
+    {
+        if(individualmoveCount==0)
+        {
+            return 0;
+        }
+        return moveHistory[individualmoveCount-1];
+    }
     public boolean isRepetition()
     {
         int limit=Math.max(0,individualmoveCount-halfmoveClock);
