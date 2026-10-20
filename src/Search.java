@@ -72,7 +72,7 @@ public class Search
             improvingStep=1;
         }
         boolean pvNode=beta-alpha>1;
-        if(!pvNode&&!inCheck&&depth<=6&&beta<checkmate-1000&&beta>-checkmate+1000&&staticEval-120*depth>=beta)
+        if(!pvNode&&!inCheck&&depth<=6&&beta<checkmate-1000&&beta>-checkmate+1000&&staticEval-120*(depth-improvingStep)>=beta)
         {
             return staticEval;
         }
@@ -134,6 +134,10 @@ public class Search
         int legalMoveCount=0;
         for(int move:moves)
         {
+            if(!pvNode&&!inCheck&&depth<=3&&moveNumber>0&&Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0&&staticExchange(board,move)<-100*depth)
+            {
+                continue;
+            }
             board.makeMove(move);
             if(MoveGenerator.isKingAttacked(board,mover))
             {
@@ -150,7 +154,7 @@ public class Search
                 {
                     lateMoveCount=lateMoveCount/2+1;
                 }
-                if(depth<=4&&moveNumber>=3+depth*depth)
+                if(depth<=4&&moveNumber>=lateMoveCount)
                 {
                     board.unmakeMove();
                     moveNumber++;
@@ -630,9 +634,20 @@ public class Search
         int bestMove = rootMoves[0];
         safeMove=bestMove;
         int previousScore=0;
+        int stableCount=0;
+        int previousBestMove=0;
         for (int depth = 1; depth <= maxDepth; depth++)
         {
-            if(!fixedMoveTime&&depth>1&&System.nanoTime()-startTime>budgetNanos/2)
+            long softPercent=50;
+            if(depth>6&&stableCount>=3)
+            {
+                softPercent=30;
+            }
+            if(depth>6&&stableCount==0)
+            {
+                softPercent=70;
+            }
+            if(!fixedMoveTime&&depth>1&&System.nanoTime()-startTime>budgetNanos*softPercent/100)
             {
                 break;
             }
@@ -707,6 +722,15 @@ public class Search
             bestMove = sofarBest;
             safeMove=bestMove;
             previousScore=alpha;
+            if(bestMove==previousBestMove)
+            {
+                stableCount++;
+            }
+            else
+            {
+                stableCount=0;
+            }
+            previousBestMove=bestMove;
             System.out.println("info depth "+depth+" score "+scoreToUci(alpha)+" nodes "+positionSeen+" time "+(System.nanoTime()-startTime)/1000000+" pv "+principalVariation(board,bestMove,depth));
             for (int i = 0; i < rootMoves.length; i++) {
                 if (rootMoves[i] == bestMove) {
