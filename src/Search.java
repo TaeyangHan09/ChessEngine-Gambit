@@ -108,7 +108,7 @@ public class Search
         int bestScore=-checkmate-1;
         int moveNumber = 0;
         int triedQuietCount=0;
-        int[] triedQuiteMove=triedQuietMoves[Math.min(individualMovementCount,127)];
+        int[] triedQuietMoves =triedQuietMovesAt[Math.min(individualMovementCount,127)];
         boolean mover = board.whiteToMove;
         int legalMoveCount=0;
         for(int move:moves)
@@ -153,6 +153,21 @@ public class Search
                 if(reduce)
                 {
                     reduction=lateMoveReduction[Math.min(depth,63)][Math.min(moveNumber,63)];
+                    int moverIndex;
+                    if(mover)
+                    {
+                        moverIndex=0;
+                    }
+                    else
+                    {
+                        moverIndex=1;
+                    }
+                    int moveHistoryScore=history[moverIndex][Move.unbitpackcurrentPosition(move)][Move.unbitpackchangedPosition(move)];
+                    reduction=reduction-Math.max(-2,Math.min(2,moveHistoryScore/2000));
+                    if(reduction<0)
+                    {
+                        reduction=0;
+                    }
                     if(depth-1-reduction<1)
                     {
                         reduction=depth-2;
@@ -186,9 +201,9 @@ public class Search
                         sideIndex = 1;
                     }
                     history[sideIndex][Move.unbitpackcurrentPosition(move)][Move.unbitpackchangedPosition(move)] += depth * depth;
-                    for(int i=0;i<triedQuietMoves;i++)
+                    for(int i=0;i<triedQuietCount;i++)
                     {
-                        int triedMove=triedQuietMoves[i];
+                        int triedMove= triedQuietMoves[i];
                         int triedFrom=Move.unbitpackcurrentPosition(triedMove);
                         int triedTo=Move.unbitpackchangedPosition(triedMove);
                         history[sideIndex][triedFrom][triedTo]=Math.max(history[sideIndex][triedFrom][triedTo]-depth*depth,-6000);
@@ -217,7 +232,7 @@ public class Search
             }
             if(!Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0&&triedQuietCount<256)
             {
-                triedQuietMoves[triedQuietCount++]==move;
+                triedQuietMoves[triedQuietCount++]=move;
             }
             moveNumber++;
         }
@@ -533,7 +548,7 @@ public class Search
     }
     private static final int [][] killers=new int[128][2];
     private static final int[][][] history = new int[2][64][64];
-    private static final int[][] triedQuietMoves=new int[128][256];
+    private static final int[][] triedQuietMovesAt=new int[128][256];
     private static final int[][] counterMoves=new int[64][64];
     private static int currentCounterMove=0;
     private static void peekAtClock()
