@@ -107,6 +107,8 @@ public class Search
         int bestMove = 0;
         int bestScore=-checkmate-1;
         int moveNumber = 0;
+        int triedQuietCount=0;
+        int[] triedQuiteMove=triedQuietMoves[Math.min(individualMovementCount,127)];
         boolean mover = board.whiteToMove;
         int legalMoveCount=0;
         for(int move:moves)
@@ -184,9 +186,16 @@ public class Search
                         sideIndex = 1;
                     }
                     history[sideIndex][Move.unbitpackcurrentPosition(move)][Move.unbitpackchangedPosition(move)] += depth * depth;
+                    for(int i=0;i<triedQuietMoves;i++)
+                    {
+                        int triedMove=triedQuietMoves[i];
+                        int triedFrom=Move.unbitpackcurrentPosition(triedMove);
+                        int triedTo=Move.unbitpackchangedPosition(triedMove);
+                        history[sideIndex][triedFrom][triedTo]=Math.max(history[sideIndex][triedFrom][triedTo]-depth*depth,-6000);
+                    }
                     if(previousMove!=0)
                     {
-                        counterMove[Move.unbitpackcurrentPosition(previousMove)][Move.unbitpackchangedPosition(previousMove)]=move;
+                        counterMoves[Move.unbitpackcurrentPosition(previousMove)][Move.unbitpackchangedPosition(previousMove)]=move;
                     }
                     if (individualMovementCount < 128 && killers[individualMovementCount][0] != move)
                     {
@@ -205,6 +214,10 @@ public class Search
             {
                 alpha=score;
                 bestMove=move;
+            }
+            if(!Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0&&triedQuietCount<256)
+            {
+                triedQuietMoves[triedQuietCount++]==move;
             }
             moveNumber++;
         }
@@ -520,6 +533,7 @@ public class Search
     }
     private static final int [][] killers=new int[128][2];
     private static final int[][][] history = new int[2][64][64];
+    private static final int[][] triedQuietMoves=new int[128][256];
     private static final int[][] counterMoves=new int[64][64];
     private static int currentCounterMove=0;
     private static void peekAtClock()
