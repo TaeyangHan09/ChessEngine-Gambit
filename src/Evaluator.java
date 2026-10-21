@@ -181,10 +181,10 @@ public class Evaluator
         }
         return kingValueTable;
     }
-    private static final int[] value = {0,100,320,330,500,900,0};
-    private static final int doubledPawnPenalty = 15;
+    private static final int[] value = {0,81,328,315,490,926,0};
+    private static final int doubledPawnPenalty = 9;
     private static final int isolatedPawnPenalty = 15;
-    private static final int[] passedPawnBonus={0,5,10,20,40,70,0,0};
+    private static final int[] passedPawnBonus={8,7,13,25,40,57,0,0};
     private static boolean isPassedPawn(int square,boolean white,int[]whiteFrontPawnRow,int[]blackFrontPawnRow)
     {
         int row=square/8;
@@ -272,10 +272,10 @@ public class Evaluator
         }
         return score;
     }
-    private static final int knightMobilityWeight=4;
-    private static final int bishopMobilityWeight=3;
-    private static final int rookMobilityWeight=2;
-    private static final int queenMobilityWeight=1;
+    private static final int knightMobilityWeight=0;
+    private static final int bishopMobilityWeight=4;
+    private static final int rookMobilityWeight=3;
+    private static final int queenMobilityWeight=2;
     private static final int[] mobilityKnightRow={-2,-2,-1,-1,1,1,2,2};
     private static final int[] mobilityKnightColumn={-1,1,-2,2,-2,2,-1,1};
     private static final int[] mobilityRookRow={-1,1,0,0};
@@ -335,8 +335,8 @@ public class Evaluator
         }
         return count;
     }
-    private static final int missingShieldPenalty = 10;
-    private static final int openFilePnenalty = 15;
+    private static final int missingShieldPenalty = 12;
+    private static final int openFilePnenalty = 21;
     private static int kingDangerPenalty(Board board,boolean white,int[] ownPawny)
     {
         int kingSquare =board.kingSquare[white?0:1];
@@ -389,8 +389,8 @@ public class Evaluator
         }
         return penalty;
     }
-    public static final int bishopPairBonus=30;
-    private static final int pawnThreatPenalty=40;
+    public static final int bishopPairBonus=38;
+    private static final int pawnThreatPenalty=38;
     private static boolean attackedByEnemyPawn(Board board,int square,boolean white)
     {
         int row=square/8;
@@ -422,10 +422,10 @@ public class Evaluator
         return false;
 
     }
-    private static final int rookSeventhRankBonus=20;
-    private static final int tempoBonus=15;
-    private static final int rookOpenFileBonus=20;
-    private static final int rookSemiOpenFileBonus=10;
+    private static final int rookSeventhRankBonus=10;
+    private static final int tempoBonus=7;
+    private static final int rookOpenFileBonus=14;
+    private static final int rookSemiOpenFileBonus=13;
     public static int evaluate(Board board)
     {
         int score = 0;
