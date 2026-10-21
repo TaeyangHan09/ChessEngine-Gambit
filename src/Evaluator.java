@@ -315,6 +315,39 @@ public class Evaluator
         return penalty;
     }
     public static final int bishopPairBonus=30;
+    private static final int pawnThreatPenalty=40;
+    private static boolean attackedByEnemyPawn(Board board,int square,boolean white)
+    {
+        int row=square/8;
+        int column=square%8;
+        int pawnRow;
+        int enemyPawn;
+        if(white)
+        {
+            pawnRow=row-1;
+            enemyPawn=-Board.Pawn;
+        }
+        else
+        {
+            pawnRow=row+1;
+            enemyPawn=Board.Pawn;
+        }
+        if(pawnRow<0||pawnRow>7)
+        {
+            return false;
+            if(column>0&&board.squares[pawnRow*8+column-1]==enemyPawn)
+            {
+                return true;
+            }
+            if(column<7&&board.squares[pawnRow*8+column+1]==enemyPawn)
+            {
+                return true;
+            }
+            return false;
+        }
+    }
+    private static final int rookSeventhRankBonus=20;
+    private static final int tempoBonus=15;
     private static final int rookOpenFileBonus=20;
     private static final int rookSemiOpenFileBonus=10;
     public static int evaluate(Board board)
@@ -457,6 +490,17 @@ public class Evaluator
             {
                 mobilityScore-=pieceMobility;
             }
+            if(absolutevalue>=Board.Knight&&absolutevalue<=Board.Queen&&attackedByEnemyPawn(board,square,piece>0))
+            {
+                if(piece>0)
+                {
+                    score=score-pawnThreatPenalty;
+                }
+                else
+                {
+                    score=score+pawnThreatPenalty;
+                }
+            }
             if(absolutevalue==board.King)
             {
                 continue;
@@ -484,6 +528,14 @@ public class Evaluator
         for(int square=0;square<64;square++)
         {
             int piece=board.squares[square];
+            if(piece==Board.Rook&&square/8==1)
+            {
+                score=score+rookSeventhRankBonus;
+            }
+            if(piece==-Board.Rook&square/8==6)
+            {
+                score=score-rookSeventhRankBonus;
+            }
             if(piece==Board.Rook)
             {
                 int column=square%8;
@@ -565,11 +617,11 @@ public class Evaluator
         }
         if(board.whiteToMove)
         {
-            return score;
+            return score+tempoBonus;
         }
         else
         {
-            return -score;
+            return -score+tempoBonus;
         }
     }
 }
