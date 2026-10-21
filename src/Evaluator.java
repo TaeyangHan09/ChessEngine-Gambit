@@ -81,6 +81,82 @@ public class Evaluator
         -30,-30,  0,  0,  0,  0,-30,-30,
         -50,-30,-30,-30,-30,-30,-30,-50
     };
+    private static final int[] endgamePawnValueTable =
+            {
+                    0,   0,   0,   0,   0,   0,   0,   0,
+                    47,  47,  49,  43,  52,  54,  50,  55,
+                    19,  18,  23,  10,  18,  16,   8,  11,
+                    11,  10,   4,  14,   7,   8,   0,   2,
+                    6,  -3,   5,   8,  14,   8,   4,   1,
+                    8,  -7,  -5,   3,   9,   0,  10,   6,
+                    6,   8,   9, -14, -16,  12,   7,   5,
+                    0,   0,   0,   0,   0,   0,   0,   0
+            };
+    private static final int[] endgameKnightValueTable =
+            {
+                    -54, -38, -31, -28, -30, -31, -42, -49,
+                    -39, -18,  -2,   4,  -1,   6, -20, -38,
+                    -27,   4,   8,  23,  12,  12,   2, -26,
+                    -24,   6,  15,  20,  23,  16,   7, -27,
+                    -26,  -1,  18,  14,   9,  12,   1, -25,
+                    -26,  -3,   0,  10,   8,   8,   4, -31,
+                    -41, -19,   5,  -4,  -2,  -4, -22, -37,
+                    -50, -39, -27, -29, -28, -30, -45, -50
+            };
+    private static final int[] endgameBishopValueTable =
+            {
+                    -21,  -8, -14, -12, -10,  -9, -10, -19,
+                    -11,  -2,   0,  -5,  -3,   2,   2, -11,
+                    -10,   1,   2,  10,  10,  13,   0,  -7,
+                    -7,   5,   5,   8,  12,  -1,   5, -13,
+                    -8,   0,   9,   6,  10,  10,  -1,  -5,
+                    -4,  10,  13,   8,   9,   4,   5,  -6,
+                    -11,   2,   1,   2,  -8,   0,   4,  -9,
+                    -20,  -6,  -8, -15,  -9,  -8,  -9, -23
+            };
+    private static final int[] endgameRookValueTable =
+            {
+                    2,   1,  -2,   2,   3,   2,   0,   5,
+                    7,  12,  13,  11,  15,  12,   9,   9,
+                    5,  10,   3,   0,   1,   2,   3,  -3,
+                    -2,   1,   4,   2,  -3,   1,  -2,  -1,
+                    -3,   4,  -2,   4,  -3,   1,  -2,  -1,
+                    -4,   0,   3,  -6,  -1,  -2,  -2,  -5,
+                    -10,  -1,  -5,  -6,  -6,  -7,  -4,  -8,
+                    -7,  -4,  -3,   5,  -4,   2,  -6, -10
+            };
+    private static final int[] endgameQueenValueTable =
+            {
+                    -19,  -9, -12,  -5,  -4,  -9, -11, -17,
+                    -15,   2,   1,   2,   4,   4,   3,  -5,
+                    -12,   1,   4,   5,   7,   4,   4,  -5,
+                    -7,  -3,   3,   5,   8,   5,   0,   5,
+                    -9,  -1,  -3,   8,   5,   0,  -2,  -6,
+                    -12,   3,  13,  -3,   7,  -1,   0,  -9,
+                    -12,   3,   3,   4,  -1,   2,  -1,  -8,
+                    -20,  -7, -11,   2,   0,  -9, -11, -19
+            };
+    private static final int[] endgameValue = {0,93,317,321,509,925,0};
+    private static int [] endgameTableAll(int pieceType)
+    {
+        if(pieceType==Board.Pawn)
+        {
+            return endgamePawnValueTable;
+        }
+        if(pieceType==Board.Knight)
+        {
+            return endgameKnightValueTable;
+        }
+        if(pieceType==Board.Bishop)
+        {
+            return endgameBishopValueTable;
+        }
+        if(pieceType==Board.Rook)
+        {
+            return endgameRookValueTable;
+        }
+        return endgameQueenValueTable;
+    }
     private static int [] tableAll(int pieceType)
     {
         if(pieceType==Board.Pawn)
@@ -104,7 +180,6 @@ public class Evaluator
             return queenValueTable;
         }
         return kingValueTable;
-
     }
     private static final int[] value = {0,100,320,330,500,900,0};
     private static final int doubledPawnPenalty = 15;
@@ -335,16 +410,17 @@ public class Evaluator
         if(pawnRow<0||pawnRow>7)
         {
             return false;
-            if(column>0&&board.squares[pawnRow*8+column-1]==enemyPawn)
-            {
-                return true;
-            }
-            if(column<7&&board.squares[pawnRow*8+column+1]==enemyPawn)
-            {
-                return true;
-            }
-            return false;
         }
+        if(column>0&&board.squares[pawnRow*8+column-1]==enemyPawn)
+        {
+            return true;
+        }
+        if(column<7&&board.squares[pawnRow*8+column+1]==enemyPawn)
+        {
+            return true;
+        }
+        return false;
+
     }
     private static final int rookSeventhRankBonus=20;
     private static final int tempoBonus=15;
@@ -354,6 +430,8 @@ public class Evaluator
     {
         int score = 0;
         int gamePhase=0;
+        int middlegamePieces=0;
+        int endgamePieces=0;
         int[] whitePawny=new int[8];
         int[] blackPawny=new int[8];
         int[] whiteFrontPawnRow={-1,-1,-1,-1,-1,-1,-1,-1};
@@ -506,13 +584,16 @@ public class Evaluator
                 continue;
             }
             int [] specificTable=tableAll(absolutevalue);
+            int [] endgameTable=endgameTableAll(absolutevalue);
             if(piece>0)
             {
-                score+=value[absolutevalue]+specificTable[square];
+                middlegamePieces+=value[absolutevalue]+specificTable[square];
+                endgamePieces+=endgameValue[absolutevalue]+endgameTable[square];
             }
             else
             {
-                score-=value[absolutevalue]+specificTable[square^56];
+                middlegamePieces-=value[absolutevalue]+specificTable[square^56];
+                endgamePieces-=endgameValue[absolutevalue]+endgameTable[square^56];
             }
         }
         score=score+pawnStructure(board,whitePawny,blackPawny,whiteFrontPawnRow,blackFrontPawnRow,Math.min(gamePhase,24));
@@ -532,7 +613,7 @@ public class Evaluator
             {
                 score=score+rookSeventhRankBonus;
             }
-            if(piece==-Board.Rook&square/8==6)
+            if(piece==-Board.Rook&&square/8==6)
             {
                 score=score-rookSeventhRankBonus;
             }
@@ -579,6 +660,7 @@ public class Evaluator
         }
         middlegameKing=middlegameKing-kingDangerPenalty(board,true,whitePawny)+kingDangerPenalty(board,false,blackPawny);
         score=score+(middlegameKing*gamePhase+endgameKing*(24-gamePhase))/24;
+        score=score+(middlegamePieces*gamePhase+endgamePieces*(24-gamePhase))/24;
         boolean whiteHasPawns=false;
         boolean blackHasPawns=false;
         for(int column=0;column<8;column++)
