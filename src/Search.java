@@ -68,11 +68,11 @@ public class Search
             }
             else
             {
-                staticEvalAt[individualMovementCount]=staticEval;
+                staticEvalAt[individualMovementCount]=rawEval;
             }
         }
         boolean improving=false;
-        if(!inCheck&&individualMovementCount>=2&&individualMovementCount<128&&staticEvalAt[individualMovementCount-2]!=noEval&&staticEval>staticEvalAt[individualMovementCount-2])
+        if(!inCheck&&individualMovementCount>=2&&individualMovementCount<128&&staticEvalAt[individualMovementCount-2]!=noEval&&rawEval>staticEvalAt[individualMovementCount-2])
         {
             improving=true;
         }
@@ -570,6 +570,7 @@ public class Search
         return moves;
     }
     public static boolean fixedMoveTime=false;
+    public static long softTimeMs=0;
     private static long doomsdayClock=Long.MAX_VALUE;
     private static boolean timesUp = false;
     public static volatile int safeMove=0;
@@ -626,6 +627,10 @@ public class Search
         }
         long startTime = System.nanoTime();
         long budgetNanos=timeMs*1000000L;
+        if(softTimeMs>0&&softTimeMs<timeMs)
+        {
+            budgetNanos=softTimeMs*1000000L;
+        }
         staticEvalAt[0]=noEval;
         staticEvalAt[1]=noEval;
         int[] rootMoves = MoveGenerator.generateLegalMoves(board);

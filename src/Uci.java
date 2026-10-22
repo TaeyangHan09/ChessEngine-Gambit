@@ -61,7 +61,7 @@ public class Uci
     private static void handleGo(String[] t)
     {
         long timeMs=1000;
-        Search.fixedMoveTime=false;
+        Search.softTimeMs=0;
         long incrementMs = 0;
         int depth=64;
         long myTimeMs=-1;
@@ -102,10 +102,10 @@ public class Uci
         }
         if(myTimeMs>=0)
         {
-            int divisor=20;
+            int divisor=14;
             if(moveToGo>0)
             {
-                divisor=Math.min(moveToGo+1,20);
+                divisor=Math.min(moveToGo+1,14);
             }
             timeMs=myTimeMs/divisor;
         }
@@ -118,6 +118,15 @@ public class Uci
         if(timeMs<20)
         {
             timeMs=20;
+        }
+        if(myTimeMs>=0&&!Search.fixedMoveTime)
+        {
+            Search.softTimeMs=timeMs;
+            long hardTimeMs=Math.min(timeMs*3,myTimeMs/4-100);
+            if(hardTimeMs>timeMs)
+            {
+                timeMs=hardTimeMs;
+            }
         }
         for(String word:t)
         {
