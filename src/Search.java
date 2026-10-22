@@ -50,6 +50,16 @@ public class Search
         {
             staticEval=Evaluator.evaluate(board);
         }
+        int rawEval=staticEval;
+        if(!inCheck&&transpositionTableIndex!=-1)
+        {
+            int tableScore=scorefromTable(TranspositionTable.scoreAt(transpositionTableIndex),individualMovementCount);
+            int tableFlag=TranspositionTable.flagAt(transpositionTableIndex);
+            if(Math.abs(tableScore)<checkmate-1000&&(tableFlag==TranspositionTable.exact||(tableFlag==TranspositionTable.lower&&tableScore>staticEval)||(tableFlag==TranspositionTable.upper&&tableScore<staticEval)))
+            {
+                staticEval=tableScore;
+            }
+        }
         if(individualMovementCount<128)
         {
             if(inCheck)
@@ -610,7 +620,7 @@ public class Search
             {
                 for(int to=0;to<64;to++)
                 {
-                    history[side][from][to]=0;
+                    history[side][from][to]=history[side][from][to]/2;
                 }
             }
         }
