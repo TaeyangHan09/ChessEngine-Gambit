@@ -3,140 +3,140 @@ public class Evaluator
     private static final int[] pawnValueTable =
             {
                     0,   0,   0,   0,   0,   0,   0,   0,
-                    48,  48,  49,  47,  51,  52,  49,  54,
-                    14,  13,  20,  12,  20,  19,   8,  14,
-                    14,   9,   1,  22,   8,   4,   2,   4,
-                    4,   0,   7,  17,  18,  12,   2,  -2,
-                    3,  -7,  -5,  -1,   7,   6,  13,   2,
-                    -5,   2,   8, -20, -18,   6,  15,  -6,
+                    47,  48,  48,  46,  51,  52,  49,  54,
+                    13,  11,  19,  9,  19,  19,   8,  12,
+                    15,   8,   3,  21,   13,   4,   4,   2,
+                    -2,   0,   8,  17,  17,  11,   0,  -10,
+                    0,  -7,  5,  -2,   9,   4,  15,   -1,
+                    -6,  -1,   0, -17,  -8,  11,  21,  -6,
                     0,   0,   0,   0,   0,   0,   0,   0
             };
     private static final int[] knightValueTable =
             {
-                    -54, -39, -31, -29, -29, -31, -41, -50,
-                    -38, -17,   0,   2,  -1,   7, -19, -38,
-                    -29,   6,   9,  23,  14,  14,   1, -27,
-                    -24,   2,  16,  26,  20,  18,   8, -28,
-                    -20,  -2,  16,  12,  13,  13,   1, -24,
-                    -24,  -4,   0,  15,   7,   4,   0, -33,
-                    -39, -20,   6,  -6,  -2,  -5, -23, -37,
-                    -51, -33, -27, -29, -27, -30, -46, -50
+                    -57, -39, -31, -29, -28, -32, -41, -50,
+                    -39, -17,   0,   3,  -1,   8, -19, -38,
+                    -30,   6,  10,  23,  15,  16,   1, -26,
+                    -23,   1,  16,  31,  17,  20,   4, -26,
+                    -18,  -2,  15,  10,  15,  13,   1, -24,
+                    -25,  -8,   2,  15,   7,   4,  -1, -34,
+                    -38, -21,   3,  -4,  -3,  -6, -22, -34,
+                    -51, -32, -27, -29, -27, -28, -42, -50
             };
 
     private static final int[] bishopValueTable =
             {
-                    -22,  -8, -12, -11, -10,  -9, -10, -20,
-                    -13,  -1,   0,  -5,  -3,   3,   1, -11,
-                    -9,   1,   3,  10,  11,  12,   1,  -6,
-                    -7,   5,   5,  13,  14,   2,   5, -13,
-                    -6,   1,   8,   6,  10,   2,  -3,  -7,
-                    -1,   7,  17,   5,   4,   2,   6,  -5,
-                    -9,   2,   3,  -1,  -9,  -1,  11, -10,
-                    -19,  -6,  -8, -15,  -8, -16,  -8, -23
+                    -22,  -8, -13, -11, -10, -10, -10, -20,
+                    -14,  -1,  -1,  -5,  -3,   4,   1, -12,
+                    -8,   1,   4,   9,  11,  13,   1,  -2,
+                    -7,   2,   5,  15,  15,   1,   3, -13,
+                    -5,   2,   3,   7,  11,  -3,  -4,  -9,
+                    3,   6,  15,   2,   2,   1,   4,  -4,
+                    -8,   7,   3,  -2,  -3,  -1,  20,  -9,
+                    -18,  -7,  -7, -14,  -7, -18,  -8, -23
             };
 
     private static final int[] rookValueTable =
             {
-                    2,   2,  -1,   2,   2,   2,   1,   4,
-                    7,  12,  15,  12,  13,  12,   9,  11,
-                    4,   9,   3,  -1,   1,   1,   3,  -3,
-                    -2,  -2,   3,   2,  -2,   0,  -3,  -3,
-                    -3,   2,  -1,   7,  -2,   2,  -3,   1,
-                    -6,  -3,   1,  -7,  -3,  -3,  -1,  -5,
-                    -13,  -2,  -4,  -4,  -5,  -9,  -3,  -8,
-                    -7,  -9,   2,   6,   2,   5, -13, -13
+                    3,   2,  -2,   2,   2,   3,   2,   4,
+                    7,   9,  16,  13,  12,  12,  10,  11,
+                    5,   9,   4,   0,   2,   2,   4,  -2,
+                    -2,  -2,   4,   2,  -3,   1,  -5,  -2,
+                    -4,   1,  -1,   7,  -3,   1,  -3,   1,
+                    -8,  -6,   0,  -9,  -4,  -4,   0,  -6,
+                    -15,  -4,  -4,  -4,  -5, -10,  -4, -11,
+                    -8, -10,   4,   5,   4,   3, -17, -11
             };
 
     private static final int[] queenValueTable =
             {
                     -19,  -9, -11,  -5,  -4,  -9, -10, -16,
-                    -14,   2,   0,   1,   3,   5,   4,  -5,
-                    -12,   0,   3,   6,   8,   4,   5,  -5,
-                    -7,  -6,   1,   4,   6,   5,   0,  12,
-                    -9,  -2,  -5,   6,   3,   2,  -2,  -8,
-                    -11,  -1,  10,  -5,   7,  -2,   2, -10,
-                    -12,   4,   4,   6,   1,   1,  -2,  -8,
-                    -19,  -6,  -9,   5,   2,  -8, -11, -20
+                    -13,  -4,  -1,   1,   2,   5,   5,  -4,
+                    -12,   0,   1,   6,   8,   4,   6,  -2,
+                    -8,  -8,   1,   1,   4,   5,   0,  15,
+                    -10,  -3,  -7,   4,   3,   1,  -1,  -8,
+                    -11,  -1,   8,  -5,   7,   1,   4,  -9,
+                    -12,   3,   4,   7,   5,   1,  -2,  -9,
+                    -15,  -5,  -5,   8,   3,  -8, -11, -20
             };
 
     private static final int[] kingValueTable =
             {
                     -30, -40, -40, -50, -50, -40, -40, -30,
                     -30, -40, -40, -50, -50, -38, -39, -30,
-                    -31, -40, -40, -50, -49, -38, -39, -30,
-                    -29, -39, -39, -51, -50, -40, -39, -29,
-                    -19, -29, -32, -45, -42, -32, -29, -21,
-                    -11, -21, -23, -26, -22, -19, -20, -10,
-                    22,  20,  -5,  -3,  -6,   3,  23,  13,
-                    19,  19,  24,  -4,  19,   5,  34,  22
+                    -31, -39, -40, -50, -49, -38, -39, -30,
+                    -29, -39, -39, -51, -51, -40, -39, -29,
+                    -19, -29, -33, -46, -43, -32, -28, -21,
+                    -12, -22, -23, -28, -22, -18, -20, -10,
+                    23,  19,  -5,  -6,  -7,   2,  25,  11,
+                    20,  22,  27,  -5,  20,   3,  34,  23
             };
     private static final int[] endgameKingValueTable =
             {
-                    -51, -41, -31, -19, -19, -28, -38, -50,
-                    -30, -18,  -7,   4,   4,  -4, -14, -29,
-                    -30,  -1,  23,  34,  34,  28,   0, -26,
-                    -26,  -3,  34,  35,  43,  29,  -1, -23,
-                    -28,  -6,  21,  32,  30,  20,  -6, -25,
-                    -30, -15,  12,  17,  15,  14, -10, -32,
-                    -29, -29, -11,  -9,  -2,  -4, -29, -33,
-                    -46, -36, -21, -30, -28, -31, -35, -55
+                    -51, -41, -30, -18, -19, -28, -38, -49,
+                    -31, -16,  -6,   5,   5,  -2, -12, -29,
+                    -30,   1,  22,  33,  34,  29,   4, -25,
+                    -25,  -1,  32,  32,  40,  29,   2, -20,
+                    -28,  -5,  16,  28,  25,  18,  -3, -21,
+                    -32, -15,   9,  14,  12,  12,  -7, -30,
+                    -29, -29, -11,  -9,  -2,  -5, -24, -33,
+                    -45, -36, -22, -31, -29, -29, -39, -58
             };
     private static final int[] endgamePawnValueTable =
             {
                     0,   0,   0,   0,   0,   0,   0,   0,
-                    47,  47,  49,  43,  52,  54,  50,  55,
-                    19,  18,  23,  10,  18,  16,   8,  11,
-                    11,  10,   4,  14,   7,   8,   0,   2,
-                    6,  -3,   5,   8,  14,   8,   4,   1,
-                    8,  -7,  -5,   3,   9,   0,  10,   6,
-                    6,   8,   9, -14, -16,  12,   7,   5,
+                    45,  47,  49,  40,  53,  55,  51,  55,
+                    21,  20,  23,   7,  16,  15,   7,  10,
+                    11,  11,   6,   8,   3,   6,   1,   3,
+                    8,  -1,   3,   5,   9,   4,   3,   3,
+                    7,  -3,  -2,   6,   9,   2,   5,   4,
+                    8,   8,   8, -10, -10,  12,   3,   3,
                     0,   0,   0,   0,   0,   0,   0,   0
             };
     private static final int[] endgameKnightValueTable =
             {
-                    -54, -38, -31, -28, -30, -31, -42, -49,
-                    -39, -18,  -2,   4,  -1,   6, -20, -38,
-                    -27,   4,   8,  23,  12,  12,   2, -26,
-                    -24,   6,  15,  20,  23,  16,   7, -27,
-                    -26,  -1,  18,  14,   9,  12,   1, -25,
-                    -26,  -3,   0,  10,   8,   8,   4, -31,
-                    -41, -19,   5,  -4,  -2,  -4, -22, -37,
-                    -50, -39, -27, -29, -28, -30, -45, -50
+                    -55, -37, -31, -27, -30, -32, -42, -49,
+                    -39, -18,  -3,   4,  -1,   5, -20, -38,
+                    -27,   4,   9,  22,  11,  12,   1, -25,
+                    -22,   6,  16,  20,  23,  16,   6, -24,
+                    -24,   0,  17,  13,   9,  12,   1, -23,
+                    -26,  -5,  -1,   8,   7,   5,   2, -30,
+                    -40, -19,   3,  -5,  -3,  -5, -22, -37,
+                    -50, -38, -28, -29, -29, -29, -44, -50
             };
     private static final int[] endgameBishopValueTable =
             {
-                    -21,  -8, -14, -12, -10,  -9, -10, -19,
-                    -11,  -2,   0,  -5,  -3,   2,   2, -11,
-                    -10,   1,   2,  10,  10,  13,   0,  -7,
-                    -7,   5,   5,   8,  12,  -1,   5, -13,
-                    -8,   0,   9,   6,  10,  10,  -1,  -5,
-                    -4,  10,  13,   8,   9,   4,   5,  -6,
-                    -11,   2,   1,   2,  -8,   0,   4,  -9,
-                    -20,  -6,  -8, -15,  -9,  -8,  -9, -23
+                    -21,  -8, -14, -12, -10,  -9, -10, -18,
+                    -11,  -3,   0,  -6,  -3,   1,   3, -12,
+                    -10,   2,   1,   8,   8,  13,   0,  -6,
+                    -7,   5,   5,   8,  11,  -3,   4, -13,
+                    -8,  -1,   8,   5,   9,  11,  -2,  -3,
+                    -3,   9,  10,   7,  10,   3,   3,  -6,
+                    -11,   0,   0,   2,  -5,   1,   2,  -8,
+                    -19,  -6,  -9, -14,  -9,  -4,  -9, -23
             };
     private static final int[] endgameRookValueTable =
             {
-                    2,   1,  -2,   2,   3,   2,   0,   5,
-                    7,  12,  13,  11,  15,  12,   9,   9,
-                    5,  10,   3,   0,   1,   2,   3,  -3,
-                    -2,   1,   4,   2,  -3,   1,  -2,  -1,
-                    -3,   4,  -2,   4,  -3,   1,  -2,  -1,
+                    4,   1,  -3,   3,   3,   4,   2,   7,
+                    7,  11,  12,  12,  13,  11,   9,   8,
+                    6,   9,   3,   1,   2,   3,   5,  -3,
+                    -1,   2,   5,   1,  -3,   2,  -2,   1,
+                    -2,   4,  -1,   3,  -4,   0,  -2,  -2,
                     -4,   0,   3,  -6,  -1,  -2,  -2,  -5,
-                    -10,  -1,  -5,  -6,  -6,  -7,  -4,  -8,
-                    -7,  -4,  -3,   5,  -4,   2,  -6, -10
+                    -10,  -2,  -5,  -7,  -7,  -8,  -5,  -9,
+                    -5,  -3,  -5,   2,  -5,   0,  -6, -11
             };
     private static final int[] endgameQueenValueTable =
             {
-                    -19,  -9, -12,  -5,  -4,  -9, -11, -17,
-                    -15,   2,   1,   2,   4,   4,   3,  -5,
-                    -12,   1,   4,   5,   7,   4,   4,  -5,
+                    -19,  -9, -12,  -5,  -4,  -9, -11, -16,
+                    -15,   1,   0,   2,   4,   5,   4,  -4,
+                    -11,   1,   4,   5,   8,   4,   4,  -4,
                     -7,  -3,   3,   5,   8,   5,   0,   5,
-                    -9,  -1,  -3,   8,   5,   0,  -2,  -6,
-                    -12,   3,  13,  -3,   7,  -1,   0,  -9,
-                    -12,   3,   3,   4,  -1,   2,  -1,  -8,
-                    -20,  -7, -11,   2,   0,  -9, -11, -19
+                    -9,  -1,  -4,   8,   5,   0,  -1,  -5,
+                    -12,   1,  12,  -3,   8,   0,   1,  -8,
+                    -11,   2,   2,   4,  -1,   2,  -1,  -8,
+                    -18,  -7, -10,  -1,   0, -10, -11, -19
             };
-    private static final int[] endgameValue = {0,93,317,321,509,925,0};
+    private static final int[] endgameValue = {0,84,310,311,510,931,0};
     private static int [] endgameTableAll(int pieceType)
     {
         if(pieceType==Board.Pawn)
@@ -181,10 +181,10 @@ public class Evaluator
         }
         return kingValueTable;
     }
-    private static final int[] value = {0,81,328,315,490,926,0};
-    private static final int doubledPawnPenalty = 9;
+    private static final int[] value = {0,77,339,321,478,932,0};
+    private static final int doubledPawnPenalty = 7;
     private static final int isolatedPawnPenalty = 15;
-    private static final int[] passedPawnBonus={8,7,13,25,40,57,0,0};
+    private static final int[] passedPawnBonus={6,5,8,19,37,47,0,0};
     private static boolean isPassedPawn(int square,boolean white,int[]whiteFrontPawnRow,int[]blackFrontPawnRow)
     {
         int row=square/8;
@@ -272,8 +272,8 @@ public class Evaluator
         }
         return score;
     }
-    private static final int knightMobilityWeight=0;
-    private static final int bishopMobilityWeight=4;
+    private static final int knightMobilityWeight=1;
+    private static final int bishopMobilityWeight=3;
     private static final int rookMobilityWeight=3;
     private static final int queenMobilityWeight=2;
     private static final int[] mobilityKnightRow={-2,-2,-1,-1,1,1,2,2};
@@ -336,7 +336,7 @@ public class Evaluator
         return count;
     }
     private static final int missingShieldPenalty = 12;
-    private static final int openFilePnenalty = 21;
+    private static final int openFilePnenalty = 20;
     private static int kingDangerPenalty(Board board,boolean white,int[] ownPawny)
     {
         int kingSquare =board.kingSquare[white?0:1];
@@ -389,7 +389,7 @@ public class Evaluator
         }
         return penalty;
     }
-    public static final int bishopPairBonus=38;
+    public static final int bishopPairBonus=39;
     private static final int pawnThreatPenalty=38;
     private static boolean attackedByEnemyPawn(Board board,int square,boolean white)
     {
@@ -422,10 +422,10 @@ public class Evaluator
         return false;
 
     }
-    private static final int rookSeventhRankBonus=10;
-    private static final int tempoBonus=7;
-    private static final int rookOpenFileBonus=14;
-    private static final int rookSemiOpenFileBonus=13;
+    private static final int rookSeventhRankBonus=5;
+    private static final int tempoBonus=17;
+    private static final int rookOpenFileBonus=15;
+    private static final int rookSemiOpenFileBonus=12;
     public static int evaluate(Board board)
     {
         int score = 0;
