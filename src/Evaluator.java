@@ -5,7 +5,7 @@ public class Evaluator
                     0,   0,   0,   0,   0,   0,   0,   0,
                     47,  48,  48,  46,  51,  52,  49,  54,
                     13,  11,  19,  9,  19,  19,   8,  12,
-                    15,   8,   3,  21,   13,   4,   4,   2,
+                    15,   8,   3,  21,   13,   5,   5,   2,
                     -2,   0,   8,  17,  17,  11,   0,  -10,
                     0,  -7,  5,  -2,   9,   4,  15,   -1,
                     -6,  -1,   0, -17,  -8,  11,  21,  -6,
@@ -206,6 +206,26 @@ public class Evaluator
         }
         return true;
     }
+    private static int squareDistance(int firstSquare,int secondSquare)
+    {
+        return Math.max(Math.abs(firstSquare/8-secondSquare/8),Math.abs(firstSquare%8-secondSquare%8));
+    }
+    private static int passedKingDistance(Board board,int square,boolean white,int rankIndex)
+    {
+        int weight=rankIndex-1;
+        if(weight<=0)
+        {
+            return 0;
+        }
+        int frontSquare = white?square-8:square+8;
+        int ownKing=board.kingSquare[white?0:1];
+        int enemyKing=board.kingSquare[white?1:0];
+        if(ownKing==-1||enemyKing==-1)
+        {
+            return 0;
+        }
+        return weight*(5*squareDistance(enemyKing,frontSquare)-2*squareDistance(ownKing,frontSquare));
+    }
     private static int pawnStructure(Board board,int[] whitePawny,int[] blackPawny,int[] whiteFrontPawnRow,int[] blackFrontPawnRow,int gamePhase)
     {
         int score=0;
@@ -217,6 +237,7 @@ public class Evaluator
             if(isPassedPawn(square,true,whiteFrontPawnRow,blackFrontPawnRow))
                 {
                     score = score+passedPawnBonus[6-square/8]*(48-gamePhase)/24;
+                    score=score+passedKingDistance(board,square,true,6-square/8)*(24-gamePhase)/24;
                 }
             }
             if(piece==-Board.Pawn)
@@ -224,6 +245,7 @@ public class Evaluator
             if(isPassedPawn(square,false,whiteFrontPawnRow,blackFrontPawnRow))
                 {
                     score=score-passedPawnBonus[square/8-1]*(48-gamePhase)/24;
+                    score=score-passedKingDistance(board,square,false,square/8-1)*(24-gamePhase)/24;
                 }
             }
         }
