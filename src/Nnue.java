@@ -86,6 +86,10 @@ public class Nnue
                 {
                     newOwnOutputWeights[bucket*size+i]=buffer.getShort();
                 }
+                for(int i=0;i<size;i++)
+                {
+                    newEnemyOutputWeights[bucket*size+i]=buffer.getShort();
+                }
             }
             int[] newOutputBias=new int[buckets];
             for(int bucket=0;bucket<buckets;bucket++)
