@@ -61,7 +61,7 @@ public class Board {
             }
             else
             {
-                Nnue.update(whiteAccumulator[before],blackAccumulator[before],whiteAccumulator[slot],blackAccumulator[slot],pendingMovedPiece[slot],pendingFrom[slot],pendingPlacedPiece[slot],pendingTo[slot],pendingCaptured[slot],pendingCaptured[slot],pendingCapturedSquare[slot],pendingRookFrom[slot],pendingRookTo[slot]);
+                Nnue.update(whiteAccumulator[before],blackAccumulator[before],whiteAccumulator[slot],blackAccumulator[slot],pendingMovedPiece[slot],pendingFrom[slot],pendingPlacedPiece[slot],pendingTo[slot],pendingCaptured[slot],pendingCapturedSquare[slot],pendingRookFrom[slot],pendingRookTo[slot]);
             }
             accumulatorReady[slot]=true;
         }
