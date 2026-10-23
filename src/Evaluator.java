@@ -450,6 +450,10 @@ public class Evaluator
     private static final int rookSemiOpenFileBonus=12;
     public static int evaluate(Board board)
     {
+        if(Nnue.ready)
+        {
+            return  board.nnueEvaluate();
+        }
         int score = 0;
         int gamePhase=0;
         int middlegamePieces=0;

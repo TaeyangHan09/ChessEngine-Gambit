@@ -23,6 +23,8 @@ public class Board {
     private final int[] halfmoveHistory = new int[4096];
     private final long[] hashHistory = new long[4096];
     private int individualmoveCount = 0;
+    public final int[][] whiteAccumulator=new int[Nnue.accumulatorStackSize][Nnue.hiddenSize];
+    public final int[][] blackAccumulator=new int[Nnue.accumulatorStackSize][Nnue.hiddenSize];
     private int castlingTracker()
     {
         int castleTracker = 0;
@@ -57,6 +59,25 @@ public class Board {
             hash^=ZobristHash.enPassantKeys[enPassantSquare];
         }
         return hash;
+    }
+    public int nnueEvaluate()
+    {
+        int pieceCount=0;
+        if(Nnue.outputBuckets>1)
+        {
+            for(int square=0;square<64;square++)
+            {
+                if(squares[square]!=EMPTY)
+                {
+                    pieceCount++;
+                }
+            }
+        }
+        if(whiteToMove)
+        {
+            return Nnue.evaluate(whiteAccumulator[individualmoveCount%Nnue.accumulatorStackSize],blackAccumulator[individualmoveCount%Nnue.accumulatorStackSize],pieceCount);
+        }
+        return Nnue.evaluate(blackAccumulator[individualmoveCount%Nnue.accumulatorStackSize],whiteAccumulator[individualmoveCount%Nnue.accumulatorStackSize],pieceCount);
     }
     public int lastMove()
     {
@@ -168,6 +189,35 @@ public class Board {
                 squares[0] = EMPTY;
                 squares[3] = -Board.Rook;
             }
+        }
+        if(Nnue.ready)
+        {
+            int castleRookFrom=-1;
+            int castleRookTo=-1;
+            if(isCastling)
+            {
+                if(to==62)
+                {
+                    castleRookFrom=63;
+                    castleRookTo=61;
+                }
+                else if(to==58)
+                {
+                    castleRookFrom=56;
+                    castleRookTo=59;
+                }
+                else if(to==6)
+                {
+                    castleRookFrom=7;
+                    castleRookTo=5;
+                }
+                else if(to==2)
+                {
+                    castleRookFrom=0;
+                    castleRookTo=3;
+                }
+            }
+            Nnue.update(whiteAccumulator[(individualmoveCount-1)%Nnue.accumulatorStackSize],blackAccumulator[(individualmoveCount-1)%Nnue.accumulatorStackSize],whiteAccumulator[individualmoveCount%Nnue.accumulatorStackSize],blackAccumulator[individualmoveCount%Nnue.accumulatorStackSize],piece,from,squares[to],to,captured,capturedSquare,castleRookFrom,castleRookTo);
         }
         if(isDoublePush&&enemyPawnBeside(to,piece))
         {
@@ -354,6 +404,11 @@ public class Board {
         halfmoveHistory[individualmoveCount]=halfmoveClock;
         hashHistory[individualmoveCount] = hash;
         individualmoveCount++;
+        if(Nnue.ready)
+        {
+            System.arraycopy(whiteAccumulator[(individualmoveCount-1)%Nnue.accumulatorStackSize],0,whiteAccumulator[individualmoveCount%Nnue.accumulatorStackSize],0,Nnue.hiddenSize);
+            System.arraycopy(blackAccumulator[(individualmoveCount-1)%Nnue.accumulatorStackSize],0,blackAccumulator[individualmoveCount%Nnue.accumulatorStackSize],0,Nnue.hiddenSize);
+        }
         int oldEnPassantIndex=enPassantSquare;
         if(oldEnPassantIndex==-1)
         {
@@ -441,6 +496,10 @@ public class Board {
             board.fullmoveNumber = Integer.parseInt(parts[5]);
         }
         board.hash=board.computeHash();
+        if(Nnue.ready)
+        {
+            Nnue.refresh(board,board.whiteAccumulator[0],board.blackAccumulator[0]);
+        }
         return board;
     }
     private void readPieces(String boardText)
