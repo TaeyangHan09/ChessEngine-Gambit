@@ -25,6 +25,47 @@ public class Board {
     private int individualmoveCount = 0;
     public final int[][] whiteAccumulator=new int[Nnue.accumulatorStackSize][Nnue.hiddenSize];
     public final int[][] blackAccumulator=new int[Nnue.accumulatorStackSize][Nnue.hiddenSize];
+    private final boolean[] accumulatorReady=new boolean[Nnue.accumulatorStackSize];
+    private final boolean[] pendingNull=new boolean[Nnue.accumulatorStackSize];
+    private final int[] pendingMovedPiece=new int[Nnue.accumulatorStackSize];
+    private final int[] pendingFrom=new int[Nnue.accumulatorStackSize];
+    private final int[] pendingPlacedPiece=new int[Nnue.accumulatorStackSize];
+    private final int[] pendingTo=new int[Nnue.accumulatorStackSize];
+    private final int[] pendingCaptured=new int[Nnue.accumulatorStackSize];
+    private final int[] pendingCapturedSquare=new int[Nnue.accumulatorStackSize];
+    private final int[] pendingRookFrom=new int[Nnue.accumulatorStackSize];
+    private final int[] pendingRookTo=new int[Nnue.accumulatorStackSize];
+    private void updateAccumulators()
+    {
+        int stackSize=Nnue.accumulatorStackSize;
+        int readyIndex=individualmoveCount;
+        while(!accumulatorReady[readyIndex%stackSize])
+        {
+            readyIndex--;
+            if(readyIndex<0||individualmoveCount-readyIndex>=stackSize-1)
+            {
+                int slot=individualmoveCount% stackSize;
+                Nnue.refresh(this,whiteAccumulator[slot],blackAccumulator[slot]);
+                accumulatorReady[slot]=true;
+                return;
+            }
+        }
+        for(int index=readyIndex+1;index<=individualmoveCount;index++)
+        {
+            int before=(index-1)%stackSize;
+            int slot=index%stackSize;
+            if(pendingNull[slot])
+            {
+                System.arraycopy(whiteAccumulator[before],0,whiteAccumulator[slot],0,Nnue.hiddenSize);
+                System.arraycopy(blackAccumulator[before],0,blackAccumulator[slot],0,Nnue.hiddenSize);
+            }
+            else
+            {
+                Nnue.update(whiteAccumulator[before],blackAccumulator[before],whiteAccumulator[slot],blackAccumulator[slot],pendingMovedPiece[slot],pendingFrom[slot],pendingPlacedPiece[slot],pendingTo[slot],pendingCaptured[slot],pendingCaptured[slot],pendingCapturedSquare[slot],pendingRookFrom[slot],pendingRookTo[slot]);
+            }
+            accumulatorReady[slot]=true;
+        }
+    }
     private int castlingTracker()
     {
         int castleTracker = 0;
@@ -62,6 +103,7 @@ public class Board {
     }
     public int nnueEvaluate()
     {
+        updateAccumulators();
         int pieceCount=0;
         if(Nnue.outputBuckets>1)
         {
@@ -217,7 +259,17 @@ public class Board {
                     castleRookTo=3;
                 }
             }
-            Nnue.update(whiteAccumulator[(individualmoveCount-1)%Nnue.accumulatorStackSize],blackAccumulator[(individualmoveCount-1)%Nnue.accumulatorStackSize],whiteAccumulator[individualmoveCount%Nnue.accumulatorStackSize],blackAccumulator[individualmoveCount%Nnue.accumulatorStackSize],piece,from,squares[to],to,captured,capturedSquare,castleRookFrom,castleRookTo);
+            int slot= individualmoveCount%Nnue.accumulatorStackSize;
+            accumulatorReady[slot]=false;
+            pendingNull[slot]=false;
+            pendingMovedPiece[slot]=piece;
+            pendingFrom[slot]=from;
+            pendingPlacedPiece[slot]=squares[to];
+            pendingTo[slot]=to;
+            pendingCaptured[slot]=captured;
+            pendingCapturedSquare[slot]=capturedSquare;
+            pendingRookFrom[slot]=castleRookFrom;
+            pendingRookTo[slot]=castleRookTo;
         }
         if(isDoublePush&&enemyPawnBeside(to,piece))
         {
@@ -406,8 +458,8 @@ public class Board {
         individualmoveCount++;
         if(Nnue.ready)
         {
-            System.arraycopy(whiteAccumulator[(individualmoveCount-1)%Nnue.accumulatorStackSize],0,whiteAccumulator[individualmoveCount%Nnue.accumulatorStackSize],0,Nnue.hiddenSize);
-            System.arraycopy(blackAccumulator[(individualmoveCount-1)%Nnue.accumulatorStackSize],0,blackAccumulator[individualmoveCount%Nnue.accumulatorStackSize],0,Nnue.hiddenSize);
+            accumulatorReady[individualmoveCount%Nnue.accumulatorStackSize]=false;
+            pendingNull[individualmoveCount%Nnue.accumulatorStackSize]=true;
         }
         int oldEnPassantIndex=enPassantSquare;
         if(oldEnPassantIndex==-1)
@@ -499,6 +551,7 @@ public class Board {
         if(Nnue.ready)
         {
             Nnue.refresh(board,board.whiteAccumulator[0],board.blackAccumulator[0]);
+            board.accumulatorReady[0]=true;
         }
         return board;
     }
