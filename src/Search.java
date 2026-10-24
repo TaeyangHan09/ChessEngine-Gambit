@@ -46,6 +46,10 @@ public class Search
                 return transpositionTableScore;
             }
         }
+        if(depth>=4&&(transpositionTableIndex==-1||TranspositionTable.moveAt(transpositionTableIndex)==0))
+        {
+            depth--;
+        }
         int staticEval=0;
         if(!inCheck)
         {
@@ -937,11 +941,11 @@ public class Search
                 continue;
             }
             legalMoveCount++;
-            int score = -quiescence(board,-beta,-alpha,individualMovementCount+1);
             if(!mightGiveCheck(move,enemyKingSquare))
             {
                 setKnownInCheck(individualMovementCount+1,0);
             }
+            int score = -quiescence(board,-beta,-alpha,individualMovementCount+1);
             board.unmakeMove();
             if(timesUp)
             {
