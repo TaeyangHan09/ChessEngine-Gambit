@@ -109,6 +109,27 @@ public class Uci
                 divisor=Math.min(moveToGo+1,14);
             }
             timeMs=myTimeMs/divisor;
+            int gamePhase=0;
+            for(int square=0;square<64;square++)
+            {
+                int absoluteValue=Math.abs(board.squares[square]);
+                if(absoluteValue==Board.Knight||absoluteValue==Board.Bishop)
+                {
+                    gamePhase+=1;
+                }
+                if(absoluteValue==Board.Rook)
+                {
+                    gamePhase+=2;
+                }
+                if(absoluteValue==Board.Queen)
+                {
+                    gamePhase+=4;
+                }
+            }
+            if(gamePhase<=12)
+            {
+                timeMs=timeMs*4/3;
+            }
         }
         timeMs = timeMs+incrementMs*3/4;
         if(myTimeMs>=0&&timeMs>myTimeMs/2)

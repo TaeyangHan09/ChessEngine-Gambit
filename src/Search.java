@@ -4,6 +4,7 @@ public class Search
     public static int negamax(Board board,int depth,int individualMovementCount,int alpha,int beta,boolean nullAllowed)
     {
         positionSeen++;
+        boolean inCheck=takeKnownInCheck(board,individualMovementCount);
         peekAtClock();
         if(timesUp)
         {
@@ -20,6 +21,7 @@ public class Search
         }
         if(depth==0)
         {
+            setKnownInCheck(individualMovementCount,inCheck?1:0);
             return quiescence(board, alpha, beta, individualMovementCount);
         }
         if(board.halfmoveClock>=100&&!inCheck)
@@ -148,14 +150,16 @@ public class Search
             {
                 continue;
             }
+            int ownKingSquare=board.kingSquare[mover?0:1];
+            int enemyKingSquare=board.kingSquare[mover?1:0];
             board.makeMove(move);
-            if(MoveGenerator.isKingAttacked(board,mover))
+            if((inCheck||mightExposeKing(move,ownKingSquare))&&MoveGenerator.isKingAttacked(board,mover))
             {
                 board.unmakeMove();
                 continue;
             }
             legalMoveCount++;
-            boolean checksOpponent=MoveGenerator.isKingAttacked(board,board.whiteToMove);
+            boolean checksOpponent=mightGiveCheck(move,enemyKingSquare)&&MoveGenerator.isKingAttacked(board,board.whiteToMove);
             boolean quietMove=!Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0;
             if(!pvNode&&!inCheck&&quietMove&&!checksOpponent&&moveNumber>0&&bestScore>-checkmate+1000)
             {
@@ -213,13 +217,16 @@ public class Search
                         reduction=depth-2;
                     }
                 }
+                setKnownInCheck(individualMovementCount+1,checksOpponent?1:0);
                 score=-negamax(board,depth-1-reduction,individualMovementCount+1,-alpha-1,-alpha,true);
                 if(score>alpha&&reduction>0)
                 {
+                    setKnownInCheck(individualMovementCount+1,checksOpponent?1:0);
                     score=-negamax(board,depth-1,individualMovementCount+1,-alpha-1,-alpha,true);
                 }
                 if(score>alpha&&score<beta)
                 {
+                    setKnownInCheck(individualMovementCount+1,checksOpponent?0:1);
                     score=-negamax(board,depth-1,individualMovementCount+1,-beta,-alpha,true);
                 }
             }
@@ -591,6 +598,64 @@ public class Search
     private static final int[][][] history = new int[2][64][64];
     private static final int noEval=Integer.MIN_VALUE;
     private static final int[] staticEvalAt=new int[130];
+    private static boolean onSameLine(int firstSquare,int secondSquare)
+    {
+        int firstRow=firstSquare/8;
+        int firstColumn=firstSquare%8;
+        int secondRow=secondSquare/8;
+        int secondColumn=secondSquare%8;
+        return firstRow==secondRow||firstColumn==secondColumn||Math.abs(firstRow-secondRow)==Math.abs(firstColumn-secondColumn);
+    }
+    private static boolean mightExposeKing(int move,int ownKingSquare)
+    {
+        int from=Move.unbitpackcurrentPosition(move);
+        return from==ownKingSquare||Move.unbitpackenPassant(move)||onSameLine(from,ownKingSquare);
+    }
+    private static boolean mightGiveCheck(int move,int enemyKingSquare)
+    {
+        if(enemyKingSquare==-1)
+        {
+            return false;
+        }
+        if(Move.unbitpackenPassant(move)||Move.unbitpackcastlingPosition(move))
+        {
+            return true;
+        }
+        int from=Move.unbitpackcurrentPosition(move);
+        int to=Move.unbitpackchangedPosition(move);
+        if(onSameLine(from,enemyKingSquare)||onSameLine(to,enemyKingSquare))
+        {
+            return true;
+        }
+        int rowGap=Math.abs(to/8-enemyKingSquare/8);
+        int columnGap=Math.abs(to%8-enemyKingSquare%8);
+        return rowGap*columnGap==2;
+    }
+    private static final int[] knownInCheckAt=new int[140];
+    static
+    {
+        java.util.Arrays.fill(knownInCheckAt,-1);
+    }
+    private static boolean takeKnownInCheck(Board board,int individualMovementCount)
+    {
+        if(individualMovementCount<140)
+        {
+            int known=knownInCheckAt[individualMovementCount];
+            knownInCheckAt[individualMovementCount]=-1;
+            if(known!=-1)
+            {
+                return known==1;
+            }
+        }
+        return MoveGenerator.isKingAttacked(board,board.whiteToMove);
+    }
+    private static void setKnownInCheck(int individualMovementCount,int known)
+    {
+        if(individualMovementCount<140)
+        {
+            knownInCheckAt[individualMovementCount]=known;
+        }
+    }
     private static final int[][] triedQuietMovesAt=new int[128][256];
     private static final int[][] counterMoves=new int[64][64];
     private static int currentCounterMove=0;
@@ -651,6 +716,7 @@ public class Search
         int previousScore=0;
         int stableCount=0;
         int previousBestMove=0;
+        boolean scoreFell=false;
         for (int depth = 1; depth <= maxDepth; depth++)
         {
             long softPercent=50;
@@ -661,6 +727,10 @@ public class Search
             if(depth>6&&stableCount==0)
             {
                 softPercent=70;
+            }
+            if(depth>6&&scoreFell)
+            {
+                softPercent=100;
             }
             if(!fixedMoveTime&&depth>1&&System.nanoTime()-startTime>budgetNanos*softPercent/100)
             {
