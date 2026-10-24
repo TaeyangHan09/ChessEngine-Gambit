@@ -14,7 +14,6 @@ public class Search
         {
             return 0;
         }
-        boolean inCheck = MoveGenerator.isKingAttacked(board,board.whiteToMove);
         if(inCheck&&individualMovementCount<100)
         {
             depth++;
@@ -189,6 +188,7 @@ public class Search
             }
             if(moveNumber==0)
             {
+                setKnownInCheck(individualMovementCount+1,checksOpponent?1:0);
                 score=-negamax(board,depth-1,individualMovementCount+1,-beta,-alpha,true);
             }
             else
@@ -226,7 +226,7 @@ public class Search
                 }
                 if(score>alpha&&score<beta)
                 {
-                    setKnownInCheck(individualMovementCount+1,checksOpponent?0:1);
+                    setKnownInCheck(individualMovementCount+1,checksOpponent?1:0);
                     score=-negamax(board,depth-1,individualMovementCount+1,-beta,-alpha,true);
                 }
             }
@@ -806,6 +806,7 @@ public class Search
             }
             bestMove = sofarBest;
             safeMove=bestMove;
+            scoreFell=depth>1&&alpha<previousScore-20;
             previousScore=alpha;
             if(bestMove==previousBestMove)
             {
@@ -882,12 +883,12 @@ public class Search
     private static int quiescence(Board board,int alpha,int beta,int individualMovementCount)
     {
         positionSeen++;
+        boolean inCheck=takeKnownInCheck(board,individualMovementCount);
         peekAtClock();
         if(timesUp)
         {
             return 0;
         }
-        boolean inCheck = MoveGenerator.isKingAttacked(board,board.whiteToMove);
         int bestScore=-checkmate-1;
         int standPat=0;
         if(!inCheck)
@@ -927,14 +928,20 @@ public class Search
                     continue;
                 }
             }
+            int ownKingSquare=board.kingSquare[mover?0:1];
+            int enemyKingSquare=board.kingSquare[mover?1:0];
             board.makeMove(move);
-            if(MoveGenerator.isKingAttacked(board,mover))
+            if((inCheck||mightExposeKing(move,ownKingSquare))&&MoveGenerator.isKingAttacked(board,mover))
             {
                 board.unmakeMove();
                 continue;
             }
             legalMoveCount++;
             int score = -quiescence(board,-beta,-alpha,individualMovementCount+1);
+            if(!mightGiveCheck(move,enemyKingSquare))
+            {
+                setKnownInCheck(individualMovementCount+1,0);
+            }
             board.unmakeMove();
             if(timesUp)
             {
