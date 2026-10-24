@@ -3,6 +3,9 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import jdk.incubator.vector.IntVector;
+import jdk.incubator.vector.VectorOperators;
+import jdk.incubator.vector.VectorSpecies;
 public class Nnue
 {
     public static int hiddenSize=256;
@@ -11,6 +14,7 @@ public class Nnue
     private static final int QB=64;
     private static final int evalScale=400;
     public static boolean ready=false;
+    private static final VectorSpecies<Integer> lanes=IntVector.SPECIES_PREFERRED;
     private static int[] featureWeights=new int[0];
     private static int[] featureBias=new int[0];
     private static int[] ownOutputWeights=new int[0];
@@ -145,18 +149,18 @@ public class Nnue
     private static void addFeature(int[] accumulator,int feature)
     {
         int offset=feature*hiddenSize;
-        for(int i=0;i<hiddenSize;i++)
+        for(int i=0;i<hiddenSize;i+=lanes.length())
         {
-            accumulator[i]+=featureWeights[offset+i];
+            IntVector.fromArray(lanes,accumulator,i).add(IntVector.fromArray(lanes,featureWeights,offset+i)).intoArray(accumulator,i);
         }
     }
     public static void moveFeature(int[] before,int[] after,int removedFeature,int addedFeature)
     {
         int remvoedOffset=removedFeature*hiddenSize;
         int addedOffset=addedFeature*hiddenSize;
-        for(int i=0;i<hiddenSize;i++)
+        for(int i=0;i<hiddenSize;i+= lanes.length())
         {
-            after[i]=(before[i]-featureWeights[remvoedOffset+i]+featureWeights[addedOffset+i]);
+            IntVector.fromArray(lanes,before,i).sub(IntVector.fromArray(lanes,featureWeights,remvoedOffset+i)).add(IntVector.fromArray(lanes,featureWeights,addedOffset+i)).intoArray(after,i);
         }
     }
     public static void captureFeature(int[] before,int[] after,int removedFeature,int capturedFeature,int addedFeature)
@@ -164,18 +168,18 @@ public class Nnue
         int removedOffset=removedFeature*hiddenSize;
         int capturedOffset=capturedFeature*hiddenSize;
         int addedOffset=addedFeature*hiddenSize;
-        for(int i=0;i<hiddenSize;i++)
+        for(int i=0;i<hiddenSize;i+=lanes.length())
         {
-            after[i]=(before[i]-featureWeights[removedOffset+i]-featureWeights[capturedOffset+i]+featureWeights[addedOffset+i]);
+            IntVector.fromArray(lanes,before,i).sub(IntVector.fromArray(lanes,featureWeights,removedOffset+i)).sub(IntVector.fromArray(lanes,featureWeights,capturedOffset+i)).add(IntVector.fromArray(lanes,featureWeights,addedOffset+i)).intoArray(after,i);
         }
     }
     public static void castleFeature(int[] accumulator,int removedFeature,int addedFeature)
     {
         int removedOffset=removedFeature*hiddenSize;
         int addedOffset=addedFeature*hiddenSize;
-        for(int i=0;i<hiddenSize;i++)
+        for(int i=0;i<hiddenSize;i+=lanes.length())
         {
-            accumulator[i]=(accumulator[i]-featureWeights[removedOffset+i]+featureWeights[addedOffset+i]);
+            IntVector.fromArray(lanes,accumulator,i).sub(IntVector.fromArray(lanes,featureWeights,removedOffset+i)).add(IntVector.fromArray(lanes,featureWeights,addedOffset+i)).intoArray(accumulator,i);
         }
     }
     public static void update(int[] whiteBefore,int[] blackBefore,int[] whiteAfter,int[] blackAfter,int movedPiece,int from,int placedPiece,int to,int captured,int capturedSquare,int castleRookFrom,int castleRookTo)
@@ -205,13 +209,14 @@ public class Nnue
             bucket=(pieceCount-2)/4;
         }
         int weightOffset=bucket*hiddenSize;
-        int output=0;
-        for(int i=0;i<hiddenSize;i++)
+        IntVector sum =IntVector.zero(lanes);
+        for(int i=0;i<hiddenSize;i+= lanes.length())
         {
-            int own=Math.min(Math.max(ownAccumulator[i],0),QA);
-            int enemy=Math.min(Math.max(enemyAccumulator[i], 0),QA);
-            output+=own*own*ownOutputWeights[weightOffset+i]+enemy*enemy*enemyOutputWeights[weightOffset+i];
+            IntVector own=IntVector.fromArray(lanes,ownAccumulator,i).max(0).min(QA);
+            IntVector enemy=IntVector.fromArray(lanes,enemyAccumulator,i).max(0).min(QA);
+            sum=sum.add(own.mul(own).mul(IntVector.fromArray(lanes,ownOutputWeights,weightOffset+i))).add(enemy.mul(enemy).mul(IntVector.fromArray(lanes,enemyOutputWeights,weightOffset+i)));
         }
+        int output=sum.reduceLanes(VectorOperators.ADD);
         output/=QA;
         output+=outputBias[bucket];
         output*=evalScale;
