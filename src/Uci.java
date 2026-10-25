@@ -3,6 +3,7 @@ import java.io.InputStreamReader;
 public class Uci
 {
     private static Board board=Board.fromFen(Board.STARTING_POSITION);
+    private static String[] lastPosition={"position","startpos"};
     public static String moveToString(int move)
     {
         String viscabarca=Board.squareNotation(Move.unbitpackcurrentPosition(move))+Board.squareNotation(Move.unbitpackchangedPosition(move));
@@ -160,7 +161,15 @@ public class Uci
             }
         }
         Search.stopRequested=false;
-        searchThread=new SearchThread(board,depth,timeMs);
+        Board mainBoard=board;
+        Board[] helperBoards=new Board[SearchThread.helperSearches.length];
+        for(int i=0;i< helperBoards.length;i++)
+        {
+            handlePosition(lastPosition);
+            helperBoards[i]=board;
+        }
+        board=mainBoard;
+        searchThread=new SearchThread(board,helperBoards,depth,timeMs);
         searchThread.start();
     }
     private static Thread searchThread=null;
@@ -191,6 +200,7 @@ public class Uci
                 System.out.println("id name Gambit");
                 System.out.println("id author Shawn the Goat");
                 System.out.println("option name Hash type spin default 16 min 1 max 1024");
+                System.out.println("option name Threads type spin default 1 min 1 max 64");
                 System.out.println("uciok");
             }
             else if(command.equals("setoption"))
@@ -199,6 +209,10 @@ public class Uci
                 if(t.length>=5&&t[2].equals("Hash"))
                 {
                     TranspositionTable.resize(Integer.parseInt(t[4]));
+                }
+                if(t.length>=5&&t[2].equals("Threads"))
+                {
+                    SearchThread.setThread(Integer.parseInt(t[4]));
                 }
             }
             else if(command.equals("isready"))
@@ -214,6 +228,7 @@ public class Uci
             else if(command.equals("position"))
             {
                 waitForSearch();
+                lastPosition=t;
                 handlePosition(t);
             }
             else if(command.equals("go"))

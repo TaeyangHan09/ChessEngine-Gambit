@@ -1,7 +1,12 @@
 public class Search
 {
     private static final int checkmate = 100000;
-    public static int negamax(Board board,int depth,int individualMovementCount,int alpha,int beta,boolean nullAllowed)
+    private final boolean helper;
+    public Search(boolean helper)
+    {
+        this.helper=helper;
+    }
+    public int negamax(Board board,int depth,int individualMovementCount,int alpha,int beta,boolean nullAllowed)
     {
         positionSeen++;
         boolean inCheck=takeKnownInCheck(board,individualMovementCount);
@@ -320,7 +325,7 @@ public class Search
     private static final int[] seeDiagonalColumn={-1,1,-1,1};
     private static final int[] seeStraightRow = {-1,1,0,0};
     private static final int[] seeStraightColumn={0,0,-1,1};
-    private static final int[] wValue=new int[40];
+    private static int[] wValue=new int[40];
     private static int cheapestAttacker(Board board,int target,boolean white,long removedSquare)
     {
         int row=target/8;
@@ -418,7 +423,7 @@ public class Search
         }
         return bestSquare;
     }
-    private static int staticExchange(Board board,int move)
+    private int staticExchange(Board board,int move)
     {
         int from=Move.unbitpackcurrentPosition(move);
         int to=Move.unbitpackchangedPosition(move);
@@ -455,7 +460,7 @@ public class Search
         }
         return wValue[0];
     }
-    private static boolean loseMaterial(Board board,int move)
+    private boolean loseMaterial(Board board,int move)
     {
         int from=Move.unbitpackcurrentPosition(move);
         int to=Move.unbitpackchangedPosition(move);
@@ -494,7 +499,7 @@ public class Search
         }
         return false;
     }
-    private static int scoreMove(Board board,int move,int individualMovementCount)
+    private int scoreMove(Board board,int move,int individualMovementCount)
     {
         int score=0;
         int from=Move.unbitpackcurrentPosition(move);
@@ -555,8 +560,8 @@ public class Search
         }
         return score;
     }
-    private static final int [] orderScores =new int[256];
-    private static int[] orderMoves(Board board,int[] moves,int individualMovementCount)
+    private final int [] orderScores =new int[256];
+    private int[] orderMoves(Board board,int[] moves,int individualMovementCount)
     {
         int n=moves.length;
         int[] scores=orderScores;
@@ -582,11 +587,11 @@ public class Search
     }
     public static boolean fixedMoveTime=false;
     public static long softTimeMs=0;
-    private static long doomsdayClock=Long.MAX_VALUE;
-    private static boolean timesUp = false;
+    private long doomsdayClock=Long.MAX_VALUE;
+    private boolean timesUp = false;
     public static volatile int safeMove=0;
     public static volatile boolean stopRequested=false;
-    private static long positionSeen = 0;
+    private long positionSeen = 0;
     private static final int[][] lateMoveReduction=new int[64][64];
     static
     {
@@ -598,10 +603,10 @@ public class Search
             }
         }
     }
-    private static final int [][] killers=new int[128][2];
-    private static final int[][][] history = new int[2][64][64];
+    private final int [][] killers=new int[128][2];
+    private final int[][][] history = new int[2][64][64];
     private static final int noEval=Integer.MIN_VALUE;
-    private static final int[] staticEvalAt=new int[130];
+    private final int[] staticEvalAt=new int[130];
     private static boolean onSameLine(int firstSquare,int secondSquare)
     {
         int firstRow=firstSquare/8;
@@ -635,12 +640,11 @@ public class Search
         int columnGap=Math.abs(to%8-enemyKingSquare%8);
         return rowGap*columnGap==2;
     }
-    private static final int[] knownInCheckAt=new int[140];
-    static
+    private final int[] knownInCheckAt=new int[140];
     {
         java.util.Arrays.fill(knownInCheckAt,-1);
     }
-    private static boolean takeKnownInCheck(Board board,int individualMovementCount)
+    private boolean takeKnownInCheck(Board board,int individualMovementCount)
     {
         if(individualMovementCount<140)
         {
@@ -653,17 +657,17 @@ public class Search
         }
         return MoveGenerator.isKingAttacked(board,board.whiteToMove);
     }
-    private static void setKnownInCheck(int individualMovementCount,int known)
+    private void setKnownInCheck(int individualMovementCount,int known)
     {
         if(individualMovementCount<140)
         {
             knownInCheckAt[individualMovementCount]=known;
         }
     }
-    private static final int[][] triedQuietMovesAt=new int[128][256];
-    private static final int[][] counterMoves=new int[64][64];
-    private static int currentCounterMove=0;
-    private static void peekAtClock()
+    private final int[][] triedQuietMovesAt=new int[128][256];
+    private final int[][] counterMoves=new int[64][64];
+    private int currentCounterMove=0;
+    private void peekAtClock()
     {
         if(stopRequested)
         {
@@ -675,7 +679,7 @@ public class Search
             timesUp=true;
         }
     }
-    public static int search(Board board,int maxDepth, long timeMs) {
+    public int search(Board board,int maxDepth, long timeMs) {
         doomsdayClock = System.nanoTime() + timeMs*1000000L;
         timesUp = false;
         positionSeen = 0;
@@ -716,7 +720,10 @@ public class Search
         currentCounterMove=0;
         rootMoves = orderMoves(board, rootMoves,0);
         int bestMove = rootMoves[0];
-        safeMove=bestMove;
+        if(!helper)
+        {
+            safeMove=bestMove;
+        }
         int previousScore=0;
         int stableCount=0;
         int previousBestMove=0;
@@ -809,7 +816,10 @@ public class Search
                 break;
             }
             bestMove = sofarBest;
-            safeMove=bestMove;
+            if(!helper)
+            {
+                safeMove=bestMove;
+            }
             scoreFell=depth>1&&alpha<previousScore-20;
             previousScore=alpha;
             if(bestMove==previousBestMove)
@@ -821,7 +831,10 @@ public class Search
                 stableCount=0;
             }
             previousBestMove=bestMove;
-            System.out.println("info depth "+depth+" score "+scoreToUci(alpha)+" nodes "+positionSeen+" time "+(System.nanoTime()-startTime)/1000000+" pv "+principalVariation(board,bestMove,depth));
+            if(!helper)
+            {
+                System.out.println("info depth " + depth + " score " + scoreToUci(alpha) + " nodes " + positionSeen + " time " + (System.nanoTime() - startTime) / 1000000 + " pv " + principalVariation(board, bestMove, depth));
+            }
             for (int i = 0; i < rootMoves.length; i++) {
                 if (rootMoves[i] == bestMove) {
                     for (int j = i; j > 0; j--) {
@@ -884,7 +897,7 @@ public class Search
         }
         return "cp "+score;
     }
-    private static int quiescence(Board board,int alpha,int beta,int individualMovementCount)
+    private int quiescence(Board board,int alpha,int beta,int individualMovementCount)
     {
         positionSeen++;
         boolean inCheck=takeKnownInCheck(board,individualMovementCount);

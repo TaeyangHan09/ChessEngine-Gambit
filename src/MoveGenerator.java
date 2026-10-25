@@ -40,10 +40,10 @@ public class MoveGenerator
     {
         return generateMove(board,false);
     }
-    private static final int[] Messi=new int[256];
+    private static final ThreadLocal<int[]> Messi=ThreadLocal.withInitial(()->new int[256]);
     public static int[] generateMove(Board board,boolean capturesOnly)
     {
-        int[] moves = Messi;
+        int[] moves = Messi.get();
         int count = 0;
         for (int square = 0; square < 64; square++) {
             int piece = board.squares[square];

@@ -31,20 +31,22 @@ public class TranspositionTable
     public static void store(long hash,int depth,int score,int flag,int move)
     {
         int index = (int)(hash&mask);
-        if(keys[index]==hash&&move==0)
+        boolean sameKey=(keys[index]^packedEntry[index])==hash;
+        if(sameKey&&move==0)
         {
             move = moveAt(index);
         }
-        if(keys[index]!=hash||depth>=depthAt(index)-2)
+        if(!sameKey||depth>=depthAt(index)-2)
         {
-            keys[index] = hash;
-            packedEntry[index]=pack(depth, score, flag, move);
+            long packed=pack(depth,score,flag,move);
+            packedEntry[index]=packed;
+            keys[index]=hash^packed;
         }
     }
     public static int find(long hash)
     {
         int index=(int)(hash&mask);
-        if(keys[index]==hash)
+        if((keys[index]^packedEntry[index])==hash)
         {
             return index;
         }
