@@ -325,7 +325,7 @@ public class Search
     private static final int[] seeDiagonalColumn={-1,1,-1,1};
     private static final int[] seeStraightRow = {-1,1,0,0};
     private static final int[] seeStraightColumn={0,0,-1,1};
-    private static int[] wValue=new int[40];
+    private final int[] wValue=new int[40];
     private static int cheapestAttacker(Board board,int target,boolean white,long removedSquare)
     {
         int row=target/8;
