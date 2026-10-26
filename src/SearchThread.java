@@ -83,7 +83,7 @@ public class SearchThread extends Thread
             }
             else
             {
-                System.out.println("bestmove "+Uci.moveToString(best)+"ponder "+Uci.moveToString(ponderMove));
+                System.out.println("bestmove "+Uci.moveToString(best)+" ponder "+Uci.moveToString(ponderMove));
             }
         }
     }
