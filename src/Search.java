@@ -585,8 +585,8 @@ public class Search
         }
         return moves;
     }
-    public static boolean fixedMoveTime=false;
-    public static long softTimeMs=0;
+    public static volatile boolean fixedMoveTime=false;
+    public static volatile long softTimeMs=0;
     public static volatile boolean pondering=false;
     public static volatile long ponderHitTime=0;
     public static long ponderSoftMs=0;
