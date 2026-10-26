@@ -587,6 +587,39 @@ public class Search
     }
     public static boolean fixedMoveTime=false;
     public static long softTimeMs=0;
+    public static volatile boolean pondering=false;
+    public static volatile long ponderHitTime=0;
+    public static long ponderSoftMs=0;
+    public static long ponderHardMs=0;
+    private long clockPonderHit=0;
+    private long loopPonderHit=0;
+    public static void ponderHit()
+    {
+        softTimeMs=ponderSoftMs;
+        fixedMoveTime=false;
+        ponderHitTime=System.nanoTime();
+        pondering=false;
+    }
+    public static int ponderMove(Board board,int bestMove)
+    {
+        int ponderMove=0;
+        board.makeMove(bestMove);
+        int transpositionTableIndex=TranspositionTable.find(board.hash);
+        if(transpositionTableIndex!=-1)
+        {
+            int tableMove=TranspositionTable.moveAt(transpositionTableIndex);
+            for(int move:MoveGenerator.generateLegalMoves(board))
+            {
+                if(move==tableMove)
+                {
+                    ponderMove=move;
+                    break;
+                }
+            }
+        }
+        board.unmakeMove();
+        return ponderMove;
+    }
     private long doomsdayClock=Long.MAX_VALUE;
     private boolean timesUp = false;
     public static volatile int safeMove=0;
@@ -674,13 +707,23 @@ public class Search
             timesUp=true;
             return;
         }
-        if((positionSeen&2047)==0&&System.nanoTime()>=doomsdayClock)
+        if((positionSeen&2047)==0)
         {
-            timesUp=true;
+            if(ponderHitTime!=clockPonderHit)
+            {
+                clockPonderHit=ponderHitTime;
+                doomsdayClock=clockPonderHit+ponderHardMs*1000000L;
+            }
+            if(System.nanoTime()>=doomsdayClock)
+            {
+                timesUp=true;
+            }
         }
     }
     public int search(Board board,int maxDepth, long timeMs) {
         doomsdayClock = System.nanoTime() + timeMs*1000000L;
+        clockPonderHit=0;
+        loopPonderHit=0;
         timesUp = false;
         positionSeen = 0;
         for(int i=0;i<128;i++)
@@ -730,6 +773,12 @@ public class Search
         boolean scoreFell=false;
         for (int depth = 1; depth <= maxDepth; depth++)
         {
+            if(ponderHitTime!=loopPonderHit)
+            {
+                loopPonderHit=ponderHitTime;
+                startTime=loopPonderHit;
+                budgetNanos=softTimeMs*1000000L;
+            }
             long softPercent=50;
             if(depth>6&&stableCount>=3)
             {

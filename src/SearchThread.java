@@ -53,6 +53,14 @@ public class SearchThread extends Thread
             System.out.println("info string search error "+e);
             best=Search.safeMove;
         }
+        while(Search.pondering&&!Search.stopRequested)
+        {
+            try
+            {
+                Thread.sleep(1);
+            }
+            catch(InterruptedException e){}
+        }
         Search.stopRequested=true;
         for(Thread helper:helpers)
         {
@@ -68,7 +76,15 @@ public class SearchThread extends Thread
         }
         else
         {
-            System.out.println("bestmove "+Uci.moveToString(best));
+            int ponderMove=Search.ponderMove(board,best);
+            if(ponderMove==0)
+            {
+                System.out.println("bestmove "+Uci.moveToString(best));
+            }
+            else
+            {
+                System.out.println("bestmove "+Uci.moveToString(best)+"ponder "+Uci.moveToString(ponderMove));
+            }
         }
     }
 }

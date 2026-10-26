@@ -151,6 +151,20 @@ public class Uci
                 timeMs=hardTimeMs;
             }
         }
+        Search.ponderHitTime=0;
+        Search.pondering=false;
+        for(String word:t)
+        {
+            if(word.equals("ponder"))
+            {
+                Search.ponderSoftMs=Search.softTimeMs;
+                Search.ponderHardMs=timeMs;
+                Search.pondering=true;
+                Search.softTimeMs=0;
+                timeMs=24L*60*60*1000;
+                Search.fixedMoveTime=true;
+            }
+        }
         for(String word:t)
         {
             if(word.equals("infinite"))
@@ -175,6 +189,11 @@ public class Uci
     private static Thread searchThread=null;
     private static void waitForSearch()
     {
+        if(Search.pondering)
+        {
+            Search.pondering=false;
+            Search.stopRequested=true;
+        }
         if(searchThread!=null)
         {
             try
@@ -201,6 +220,7 @@ public class Uci
                 System.out.println("id author Shawn the Goat");
                 System.out.println("option name Hash type spin default 16 min 1 max 1024");
                 System.out.println("option name Threads type spin default 1 min 1 max 64");
+                System.out.println("option name Ponder type check default false");
                 System.out.println("uciok");
             }
             else if(command.equals("setoption"))
@@ -235,6 +255,10 @@ public class Uci
             {
                 waitForSearch();
                 handleGo(t);
+            }
+            else if(command.equals("ponderhit"))
+            {
+                Search.ponderHit();
             }
             else if(command.equals("stop"))
             {
