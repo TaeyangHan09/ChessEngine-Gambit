@@ -221,6 +221,10 @@ public class Uci
                 System.out.println("option name Hash type spin default 16 min 1 max 1024");
                 System.out.println("option name Threads type spin default 1 min 1 max 64");
                 System.out.println("option name Ponder type check default false");
+                if(!Nnue.ready)
+                {
+                    System.out.println("info tring WARNING: gambit.nnue not found, playing with the old evaluation");
+                }
                 System.out.println("uciok");
             }
             else if(command.equals("setoption"))
