@@ -11,7 +11,7 @@ I started the Gambit project in September 2026. Last September, I started a ches
 
 - **Windows (no Java needed):** `ChessEngine_Gambit-1.0-windows.zip`. Unzip it and point your GUI at
   `ChessEngine_Gambit-1.0\ChessEngine_Gambit-1.0.exe`.
-- **Any OS with Java 21+:** `gambit.jar`. Run it with
+- **Any OS with Java 25+:** `gambit.jar`. Run it with
   `java --add-modules jdk.incubator.vector -Xmx2g -jar gambit.jar`
   (the `--add-modules` flag is required).
 
