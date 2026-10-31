@@ -216,14 +216,14 @@ public class Uci
             String command=t[0];
             if(command.equals("uci"))
             {
-                System.out.println("id name Gambit");
-                System.out.println("id author Shawn the Goat");
+                System.out.println("id name ChessEngine_Gambit 1.0");
+                System.out.println("id author Taeyang Han");
                 System.out.println("option name Hash type spin default 16 min 1 max 1024");
                 System.out.println("option name Threads type spin default 1 min 1 max 64");
                 System.out.println("option name Ponder type check default false");
                 if(!Nnue.ready)
                 {
-                    System.out.println("info tring WARNING: gambit.nnue not found, playing with the old evaluation");
+                    System.out.println("info string WARNING: gambit.nnue not found, playing with the old evaluation");
                 }
                 System.out.println("uciok");
             }
