@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/34223087/README.md)
+
 # ChessEngine_Gambit 1.0
 
 A UCI chess engine written in Java by Taeyang Han.
