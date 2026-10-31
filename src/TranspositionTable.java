@@ -15,10 +15,25 @@ public class TranspositionTable
         {
             newSize=newSize*2;
         }
+        keys=null;
+        packedEntry=null;
+        while(true)
+        {
+            try
+            {
+                keys=new long[newSize];
+                packedEntry=new long[newSize];
+                break;
+            }
+            catch (OutOfMemoryError e)
+            {
+                keys=null;
+                packedEntry=null;
+                newSize=newSize/2;
+            }
+        }
         size=newSize;
         mask=size-1;
-        keys=new long[size];
-        packedEntry=new long[size];
     }
     private static long pack(int depth,int score,int flag,int move)
     {
