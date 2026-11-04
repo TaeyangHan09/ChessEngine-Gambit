@@ -105,9 +105,13 @@ public class Uci
         if(myTimeMs>=0)
         {
             int divisor=14;
+            if(incrementMs==0)
+            {
+                divisor=17;
+            }
             if(moveToGo>0)
             {
-                divisor=Math.min(moveToGo+1,14);
+                divisor=Math.min(moveToGo+1,divisor);
             }
             timeMs=myTimeMs/divisor;
             int gamePhase=0;
