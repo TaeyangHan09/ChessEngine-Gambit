@@ -77,7 +77,7 @@ public class Nnue
                 headerBytes=64;
 
             }
-            for(int candidateBuckets=8;candidateBuckets>=1;candidateBuckets-=7)
+            for(int candidateBuckets=8;candidateBuckets>=1&&headerBytes==0;candidateBuckets-=7)
             {
                 int candidateSize=(shorts-candidateBuckets)/(769+2*candidateBuckets);
                 int unpadded=candidateSize*(769+2*candidateBuckets)+candidateBuckets;
@@ -158,7 +158,7 @@ public class Nnue
         }
         return kingBucketMap[(viewSquare>>3)*4+(viewSquare&7)]*2+flip;
     }
-    public static int featureIndex(int perspective,int piece,int square)
+    public static int featureIndex(int perspective,int piece,int square,int kingView)
     {
         int pieceType=Math.abs(piece);
         boolean whitePiece=piece>0;
@@ -176,7 +176,7 @@ public class Nnue
         }
         return (kingView>>1)*768+colorOffset+(pieceType-1)*64+(viewSquare^((kingView&1)*7));
     }
-    public static void refresh(Board board,int[] perspective,int[] accumulator)
+    public static void refresh(Board board,int perspective,int[] accumulator)
     {
         int kingView=kingView(perspective,board.kingSquare[perspective]);
         System.arraycopy(featureBias,0,accumulator,0,hiddenSize);
@@ -238,7 +238,7 @@ public class Nnue
         if(castleRookFrom>=0)
         {
             int rook=movedPiece>0?Board.Rook:-Board.Rook;
-            castleFeature(after,featureIndex(perspective,rook,castleRookFrom,kingView),featureIndex(perspective,rook,castleRookTo,kingView),featureIndex(perspective,rook,castleRookTo,kingView));
+            castleFeature(after,featureIndex(perspective,rook,castleRookTo,kingView),featureIndex(perspective,rook,castleRookTo,kingView));
         }
     }
     public static int evaluate(int[] ownAccumulator,int[] enemyAccumulator,int pieceCount)

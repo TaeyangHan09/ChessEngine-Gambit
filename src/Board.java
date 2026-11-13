@@ -81,7 +81,7 @@ public class Board {
             }
             else
             {
-                Nnue.update(perspective,kingView,accumulator[before],pendingMovedPiece[slot],pendingFrom[slot],pendingPlacedPiece[slot],pendingTo[slot],pendingCaptured[slot],pendingCapturedSquare[slot],pendingRookFrom[slot],pendingRookTo[slot]);
+                Nnue.update(perspective,kingView,accumulator[before],accumulator[slot],pendingMovedPiece[slot],pendingFrom[slot],pendingPlacedPiece[slot],pendingTo[slot],pendingCaptured[slot],pendingCapturedSquare[slot],pendingRookFrom[slot],pendingRookTo[slot]);
             }
             ready[slot]=true;
         }
