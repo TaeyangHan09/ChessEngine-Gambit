@@ -21,6 +21,9 @@ public class Nnue
     private static int[] enemyOutputWeights =new int[0];
     private static int[] outputBias=new int[1];
     public static int outputBuckets=1;
+    public static boolean mirrored=false;
+    public static int kingBuckets=1;
+    private static int[] kingBucketMap=new int[32];
     static
     {
         load();
@@ -56,6 +59,24 @@ public class Nnue
             int shorts=bytes.length/2;
             int size=0;
             int buckets=0;
+            int headerBytes=0;
+            int newKingBuckets=1;
+            boolean newMirrored=false;
+            int[] newKingBucketMap=new int[32];
+            if(bytes.length>=64&&bytes[0]=='G'&&bytes[1]=='B'&&bytes[2]=='N'&&bytes[3]=='2')
+            {
+                ByteBuffer header=ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
+                size=header.getShort(4);
+                newKingBuckets=header.getShort(6);
+                buckets=header.getShort(8);
+                newMirrored=header.getShort(10)!=0;
+                for(int i=0;i<32&&newKingBuckets>1;i++)
+                {
+                    newKingBucketMap[i]=bytes[12+i];
+                }
+                headerBytes=64;
+
+            }
             for(int candidateBuckets=8;candidateBuckets>=1;candidateBuckets-=7)
             {
                 int candidateSize=(shorts-candidateBuckets)/(769+2*candidateBuckets);
@@ -72,7 +93,8 @@ public class Nnue
                 return;
             }
             ByteBuffer buffer=ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
-            int[] newFeatureWeights=new int[768*size];
+            buffer.position(headerBytes);
+            int[] newFeatureWeights=new int[newKingBuckets*768*size];
             for(int i=0;i<newFeatureWeights.length;i++)
             {
                 newFeatureWeights[i]=buffer.getShort();
@@ -102,6 +124,9 @@ public class Nnue
             }
             outputBias=newOutputBias;
             outputBuckets=buckets;
+            mirrored=newMirrored;
+            kingBuckets=newKingBuckets;
+            kingBucketMap=newKingBucketMap;
             hiddenSize=size;
             featureWeights=newFeatureWeights;
             featureBias=newFeatureBias;
@@ -113,6 +138,25 @@ public class Nnue
         {
             ready=false;
         }
+    }
+    public static int kingView(int perspective,int ownKingSquare)
+    {
+        if(!mirrored)
+        {
+            return 0;
+        }
+        int viewSquare=ownKingSquare;
+        if(perspective==0)
+        {
+            viewSquare=ownKingSquare^56;
+        }
+        int flip=0;
+        if((viewSquare&7)>3)
+        {
+            flip=1;
+            viewSquare=viewSquare^7;
+        }
+        return kingBucketMap[(viewSquare>>3)*4+(viewSquare&7)]*2+flip;
     }
     public static int featureIndex(int perspective,int piece,int square)
     {
@@ -130,19 +174,18 @@ public class Nnue
             colorOffset=whitePiece?384:0;
             viewSquare=square;
         }
-        return colorOffset+(pieceType-1)*64+viewSquare;
+        return (kingView>>1)*768+colorOffset+(pieceType-1)*64+(viewSquare^((kingView&1)*7));
     }
-    public static void refresh(Board board,int[] whiteAccumulator,int[] blackAccumulator)
+    public static void refresh(Board board,int[] perspective,int[] accumulator)
     {
-        System.arraycopy(featureBias,0,whiteAccumulator,0,hiddenSize);
-        System.arraycopy(featureBias,0,blackAccumulator,0,hiddenSize);
+        int kingView=kingView(perspective,board.kingSquare[perspective]);
+        System.arraycopy(featureBias,0,accumulator,0,hiddenSize);
         for(int square=0;square<64;square++)
         {
             int piece=board.squares[square];
             if(piece!=Board.EMPTY)
             {
-                addFeature(whiteAccumulator,featureIndex(0,piece,square));
-                addFeature(blackAccumulator,featureIndex(1,piece,square));
+                addFeature(accumulator,featureIndex(perspective,piece,square,kingView));
             }
         }
     }
@@ -182,23 +225,20 @@ public class Nnue
             IntVector.fromArray(lanes,accumulator,i).sub(IntVector.fromArray(lanes,featureWeights,removedOffset+i)).add(IntVector.fromArray(lanes,featureWeights,addedOffset+i)).intoArray(accumulator,i);
         }
     }
-    public static void update(int[] whiteBefore,int[] blackBefore,int[] whiteAfter,int[] blackAfter,int movedPiece,int from,int placedPiece,int to,int captured,int capturedSquare,int castleRookFrom,int castleRookTo)
+    public static void update(int perspective,int kingView,int[] before ,int[] after,int movedPiece,int from,int placedPiece,int to,int captured,int capturedSquare,int castleRookFrom,int castleRookTo)
     {
         if(captured==Board.EMPTY)
         {
-            moveFeature(whiteBefore,whiteAfter,featureIndex(0,movedPiece,from),featureIndex(0,placedPiece,to));
-            moveFeature(blackBefore,blackAfter,featureIndex(1,movedPiece,from),featureIndex(1,placedPiece,to));
+            moveFeature(before,after,featureIndex(perspective,movedPiece,from,kingView),featureIndex(perspective,placedPiece,to,kingView));
         }
         else
         {
-            captureFeature(whiteBefore,whiteAfter,featureIndex(0,movedPiece,from),featureIndex(0,captured,capturedSquare),featureIndex(0,placedPiece,to));
-            captureFeature(blackBefore,blackAfter,featureIndex(1,movedPiece,from),featureIndex(1,captured,capturedSquare),featureIndex(1,placedPiece,to));
+            captureFeature(before,after,featureIndex(perspective,movedPiece,from,kingView),featureIndex(perspective,captured,capturedSquare,kingView),featureIndex(perspective,placedPiece,to,kingView));
         }
         if(castleRookFrom>=0)
         {
             int rook=movedPiece>0?Board.Rook:-Board.Rook;
-            castleFeature(whiteAfter,featureIndex(0,rook,castleRookFrom),featureIndex(0,rook,castleRookTo));
-            castleFeature(blackAfter,featureIndex(1,rook,castleRookFrom),featureIndex(1,rook,castleRookTo));
+            castleFeature(after,featureIndex(perspective,rook,castleRookFrom,kingView),featureIndex(perspective,rook,castleRookTo,kingView),featureIndex(perspective,rook,castleRookTo,kingView));
         }
     }
     public static int evaluate(int[] ownAccumulator,int[] enemyAccumulator,int pieceCount)
