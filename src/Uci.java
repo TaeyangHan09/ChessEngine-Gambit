@@ -118,7 +118,7 @@ public class Uci
             {
                 reserveMs=Math.min(incrementMs*15,myTimeMs/3);
             }
-            timeMs=myTimeMs/divisor;
+            timeMs=(myTimeMs-reserveMs)/divisor;
             int gamePhase=0;
             for(int square=0;square<64;square++)
             {

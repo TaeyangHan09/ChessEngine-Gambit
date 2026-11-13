@@ -238,7 +238,7 @@ public class Nnue
         if(castleRookFrom>=0)
         {
             int rook=movedPiece>0?Board.Rook:-Board.Rook;
-            castleFeature(after,featureIndex(perspective,rook,castleRookTo,kingView),featureIndex(perspective,rook,castleRookTo,kingView));
+            castleFeature(after,featureIndex(perspective,rook,castleRookFrom,kingView),featureIndex(perspective,rook,castleRookTo,kingView));
         }
     }
     public static int evaluate(int[] ownAccumulator,int[] enemyAccumulator,int pieceCount)
