@@ -92,14 +92,14 @@ public class Search
             improvingStep=1;
         }
         boolean pvNode=beta-alpha>1;
-        if(!pvNode&&!inCheck&&depth<=6&&beta<checkmate-1000&&beta>-checkmate+1000&&staticEval-120*(depth-improvingStep)>=beta)
+        if(!pvNode&&!inCheck&&depth<=4&&beta<checkmate-1000&&beta>-checkmate+1000&&staticEval-(117*depth-102*improvingStep)>=beta)
         {
             return staticEval;
         }
         if(nullAllowed&&!inCheck&&depth>=3&&beta<checkmate-1000&&hasPieces(board)&&staticEval>=beta)
         {
             board.makeNullMove();
-            int nullMoveReduction=2+depth/4;
+            int nullMoveReduction=(2388+depth*298+Math.min(3072,(staticEval-beta)*95/64))>>10;
             int nullDepth=depth-1-nullMoveReduction;
             if(nullDepth<0)
             {
@@ -129,6 +129,7 @@ public class Search
             currentCounterMove=counterMoves[Move.unbitpackcurrentPosition(previousMove)][Move.unbitpackchangedPosition(previousMove)];
         }
         moves=orderMoves(board,moves,individualMovementCount);
+        int counterMoveHere=currentCounterMove;
         if(transpositionTableIndex!=-1)
         {
             int tableMove= TranspositionTable.moveAt((transpositionTableIndex));
@@ -154,7 +155,7 @@ public class Search
         int legalMoveCount=0;
         for(int move:moves)
         {
-            if(!pvNode&&!inCheck&&depth<=3&&moveNumber>0&&Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0&&staticExchange(board,move)<-100*depth)
+            if(!pvNode&&!inCheck&&depth<=3&&moveNumber>0&&Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0&&loseMaterial(board,move)&&staticExchange(board,move)<-92*depth)
             {
                 continue;
             }
@@ -171,7 +172,7 @@ public class Search
             boolean quietMove=!Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0;
             if(!pvNode&&!inCheck&&quietMove&&!checksOpponent&&moveNumber>0&&bestScore>-checkmate+1000)
             {
-                int lateMoveCount=3+depth*depth;
+                int lateMoveCount=(247+depth*depth*69)/64;
                 if(!improving)
                 {
                     lateMoveCount=lateMoveCount/2+1;
@@ -206,6 +207,19 @@ public class Search
                 if(reduce)
                 {
                     reduction=lateMoveReduction[Math.min(depth,63)][Math.min(moveNumber,63)];
+                    if(pvNode)
+                    {
+                        reduction-=159;
+                    }
+                    if(!improving)
+                    {
+                        reduction+=199;
+                    }
+                    if(move==counterMoveHere||(individualMovementCount<128&&(move==killers[individualMovementCount][0]||move==killers[individualMovementCount][1])))
+                    {
+                        reduction+=184;
+                    }
+                    reduction=reduction>>10;
                     int moverIndex;
                     if(mover)
                     {
@@ -216,7 +230,7 @@ public class Search
                         moverIndex=1;
                     }
                     int moveHistoryScore=history[moverIndex][Move.unbitpackcurrentPosition(move)][Move.unbitpackchangedPosition(move)];
-                    reduction=reduction-Math.max(-2,Math.min(2,moveHistoryScore/2000));
+                    reduction=reduction-Math.max(-2,Math.min(2,moveHistoryScore/1839));
                     if(reduction<0)
                     {
                         reduction=0;
@@ -317,7 +331,7 @@ public class Search
         return bestScore;
     }
     private static final int[] value = {0,100,320,330,500,900,20000};
-    private static final int[] futilityMargin={0,150,300,450};
+    private static final int[] futilityMargin={0,156,310,464};
     private static final int[] exchangeValue={0,100,320,330,500,900,20000};
     private static final int[] seeKnightRow = {-2,-2,-1,-1,1,1,2,2};
     private static final int[] seeKnightColumn={-1,1,-2,2,-2,2,-1,1};
@@ -632,7 +646,7 @@ public class Search
         {
             for(int moveNumber=1;moveNumber<64;moveNumber++)
             {
-                lateMoveReduction[depth][moveNumber]=(int)(0.75+Math.log(depth)*Math.log(moveNumber)/2.25);
+                lateMoveReduction[depth][moveNumber]=(int)((88/100.0+Math.log(depth)*Math.log(moveNumber)*100.0/221)*1024);
             }
         }
     }
@@ -779,14 +793,14 @@ public class Search
                 startTime=loopPonderHit;
                 budgetNanos=softTimeMs*1000000L;
             }
-            long softPercent=50;
+            long softPercent=54;
             if(depth>6&&stableCount>=3)
             {
-                softPercent=30;
+                softPercent=32;
             }
             if(depth>6&&stableCount==0)
             {
-                softPercent=70;
+                softPercent=71;
             }
             if(depth>6&&scoreFell)
             {
@@ -796,7 +810,7 @@ public class Search
             {
                 break;
             }
-            int window=50;
+            int window=45;
             int alpha;
             int beta;
             if(depth>=5)
@@ -974,10 +988,23 @@ public class Search
         int[] moves = MoveGenerator.generateMove(board,!inCheck);
         currentCounterMove=0;
         moves=orderMoves(board,moves,128);
+        int firstLosingCapture=moves.length;
+        if(!inCheck)
+        {
+            for(int i=0;i<moves.length;i++)
+            {
+                if(orderScores[i]<0)
+                {
+                    firstLosingCapture=i;
+                    break;
+                }
+            }
+        }
         boolean mover = board.whiteToMove;
         int legalMoveCount = 0;
-        for(int move:moves)
+        for(int moveIndex=0;moveIndex<firstLosingCapture;moveIndex++)
         {
+            int move=moves[moveIndex];
             if(!inCheck&&Move.unbitpackpromotionPosition(move)==0)
             {
                 int victim=Math.abs(board.squares[Move.unbitpackchangedPosition(move)]);
@@ -985,11 +1012,7 @@ public class Search
                 {
                     victim=Board.Pawn;
                 }
-                if(standPat+value[victim]+200<=alpha)
-                {
-                    continue;
-                }
-                if(loseMaterial(board,move))
+                if(standPat+value[victim]+211<=alpha)
                 {
                     continue;
                 }

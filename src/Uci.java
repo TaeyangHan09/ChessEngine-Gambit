@@ -107,11 +107,16 @@ public class Uci
             int divisor=14;
             if(incrementMs==0)
             {
-                divisor=17;
+                divisor=24;
             }
             if(moveToGo>0)
             {
                 divisor=Math.min(moveToGo+1,divisor);
+            }
+            long reserveMs=0;
+            if(incrementMs>0)
+            {
+                reserveMs=Math.min(incrementMs*15,myTimeMs/3);
             }
             timeMs=myTimeMs/divisor;
             int gamePhase=0;
@@ -131,7 +136,7 @@ public class Uci
                     gamePhase+=4;
                 }
             }
-            if(gamePhase<=12)
+            if(gamePhase<=12&&incrementMs>0)
             {
                 timeMs=timeMs*4/3;
             }
