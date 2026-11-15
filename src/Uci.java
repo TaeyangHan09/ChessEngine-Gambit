@@ -258,10 +258,10 @@ public class Uci
                 {
                     SearchThread.setThread(Integer.parseInt(t[4]));
                 }
-                if(t.length>5&&t[2].equals("SyzygyPath"))
+                if(t.length>=5&&t[2].equals("SyzygyPath"))
                 {
                     Syzygy.init(line.substring(line.indexOf(" value ")+7).trim());
-                    System.out.println("info string Syzygy tablebases: "+Syzygy.wdlTableCount+"WDL and "+Syzygy.dtzTableCount+" DTZ tables, up to "+Syzygy.maxPieces+"pieces");
+                    System.out.println("info string Syzygy tablebases: "+Syzygy.wdlTableCount+" WDL and "+Syzygy.dtzTableCount+" DTZ tables, up to "+Syzygy.maxPieces+" pieces");
                 }
             }
             else if(command.equals("isready"))
