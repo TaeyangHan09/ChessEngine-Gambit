@@ -2,6 +2,10 @@ public class Search
 {
     private static final int checkmate = 100000;
     private final boolean helper;
+    public static volatile boolean positionRepeated=false;
+    private int tablebasePieces=0;
+    private boolean tablebaseRoot=false;
+    private int tablebaseRootScore=0;
     public Search(boolean helper)
     {
         this.helper=helper;
@@ -49,6 +53,24 @@ public class Search
             if(transpositionTableFlag==TranspositionTable.upper&&transpositionTableScore<=alpha)
             {
                 return transpositionTableScore;
+            }
+        }
+        if(tablebasePieces>0&&board.pieceCount<=tablebasePieces&&board.halfmoveClock==0)
+        {
+            int tablebaseResult=Syzygy.probeWdl(board);
+            if(tablebaseResult!=Syzygy.failed)
+            {
+                int tablebaseScore=0;
+                if(tablebaseResult==2)
+                {
+                    tablebaseScore=Syzygy.tablebaseWin-individualMovementCount;
+                }
+                if(tablebaseResult==-2)
+                {
+                    tablebaseScore=-Syzygy.tablebaseWin+individualMovementCount;
+                }
+                TranspositionTable.store(board.hash,Math.min(depth+6,63),tablebaseScore,TranspositionTable.exact,0);
+                return tablebaseScore;
             }
         }
         if(depth>=4&&(transpositionTableIndex==-1||TranspositionTable.moveAt(transpositionTableIndex)==0))
@@ -767,6 +789,40 @@ public class Search
         if (rootMoves.length == 0) {
             return 0;
         }
+        tablebasePieces=Syzygy.maxPieces;
+        tablebaseRoot=false;
+        if(Syzygy.maxPieces>0&&board.pieceCount<=Syzygy.maxPieces)
+        {
+            int[] tablebaseRank=new int[rootMoves.length];
+            int tablebaseAnswer=Syzygy.rankRootMoves(board,rootMoves,tablebaseRank,positionRepeated);
+            if(tablebaseAnswer!=0)
+            {
+                int bestRank=tablebaseRank[0];
+                for(int rank:tablebaseRank)
+                {
+                    if(rank>bestRank)
+                    {
+                        bestRank=rank;
+                    }
+                }
+                int[] keptMoves=new int[rootMoves.length];
+                int keptCount=0;
+                for(int i=0;i<rootMoves.length;i++)
+                {
+                    if(tablebaseRank[i]==bestRank)
+                    {
+                        keptMoves[keptCount++]=rootMoves[i];
+                    }
+                }
+                rootMoves=java.util.Arrays.copyOf(keptMoves,keptCount);
+                tablebaseRoot=true;
+                tablebaseRootScore=Syzygy.scoreFromRank(bestRank);
+                if(tablebaseAnswer==2||bestRank<=0)
+                {
+                    tablebasePieces=0;
+                }
+            }
+        }
         for(int from=0;from<64;from++)
         {
             for(int to=0;to<64;to++)
@@ -896,7 +952,7 @@ public class Search
             previousBestMove=bestMove;
             if(!helper)
             {
-                System.out.println("info depth " + depth + " score " + scoreToUci(alpha) + " nodes " + positionSeen + " time " + (System.nanoTime() - startTime) / 1000000 + " pv " + principalVariation(board, bestMove, depth));
+                System.out.println("info depth " + depth + " score " + scoreToUci(tablebaseRoot&&Math.abs(alpha)<checkmate-1000?tablebaseRootScore:alpha) + " nodes " + positionSeen + " time " + (System.nanoTime() - startTime) / 1000000 + " pv " + principalVariation(board, bestMove, depth));
             }
             for (int i = 0; i < rootMoves.length; i++) {
                 if (rootMoves[i] == bestMove) {

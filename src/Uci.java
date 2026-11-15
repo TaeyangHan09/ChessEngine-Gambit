@@ -28,6 +28,7 @@ public class Uci
     private static void handlePosition(String[] t)
     {
         int i=1;
+        boolean repeated=false;
         if(t[i].equals("startpos"))
         {
             board = Board.fromFen(Board.STARTING_POSITION);
@@ -55,8 +56,17 @@ public class Uci
                     break;
                 }
                 board.makeMove(m);
+                if(board.halfmoveClock==0)
+                {
+                    repeated=false;
+                }
+                else if(board.isRepetition())
+                {
+                    repeated=true;
+                }
             }
         }
+        Search.positionRepeated=repeated;
 
     }
     private static void handleGo(String[] t)
@@ -230,6 +240,7 @@ public class Uci
                 System.out.println("option name Hash type spin default 16 min 1 max 1024");
                 System.out.println("option name Threads type spin default 1 min 1 max 64");
                 System.out.println("option name Ponder type check default false");
+                System.out.println("option name SyzygyPath type string default <empty>");
                 if(!Nnue.ready)
                 {
                     System.out.println("info string WARNING: gambit.nnue not found, playing with the old evaluation");
@@ -246,6 +257,11 @@ public class Uci
                 if(t.length>=5&&t[2].equals("Threads"))
                 {
                     SearchThread.setThread(Integer.parseInt(t[4]));
+                }
+                if(t.length>5&&t[2].equals("SyzygyPath"))
+                {
+                    Syzygy.init(line.substring(line.indexOf(" value ")+7).trim());
+                    System.out.println("info string Syzygy tablebases: "+Syzygy.wdlTableCount+"WDL and "+Syzygy.dtzTableCount+" DTZ tables, up to "+Syzygy.maxPieces+"pieces");
                 }
             }
             else if(command.equals("isready"))
