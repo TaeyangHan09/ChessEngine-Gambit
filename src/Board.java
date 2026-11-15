@@ -23,8 +23,8 @@ public class Board {
     private final int[] halfmoveHistory = new int[4096];
     private final long[] hashHistory = new long[4096];
     private int individualmoveCount = 0;
-    public final int[][] whiteAccumulator=new int[Nnue.accumulatorStackSize][Nnue.hiddenSize];
-    public final int[][] blackAccumulator=new int[Nnue.accumulatorStackSize][Nnue.hiddenSize];
+    public final short[][] whiteAccumulator=new short[Nnue.accumulatorStackSize][Nnue.hiddenSize];
+    public final short[][] blackAccumulator=new short[Nnue.accumulatorStackSize][Nnue.hiddenSize];
     private final boolean[][] accumulatorReady=new boolean[2][Nnue.accumulatorStackSize];
     public int pieceCount=0;
     private final boolean[] pendingNull=new boolean[Nnue.accumulatorStackSize];
@@ -41,7 +41,7 @@ public class Board {
         updateAccumulators(0,whiteAccumulator);
         updateAccumulators(1,blackAccumulator);
     }
-    private void updateAccumulators(int perspective,int[][] accumulator)
+    private void updateAccumulators(int perspective,short[][] accumulator)
     {
         int stackSize=Nnue.accumulatorStackSize;
         boolean[] ready=accumulatorReady[perspective];

@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import jdk.incubator.vector.IntVector;
+import jdk.incubator.vector.ShortVector;
 import jdk.incubator.vector.VectorOperators;
 import jdk.incubator.vector.VectorSpecies;
 public class Nnue
@@ -14,9 +15,10 @@ public class Nnue
     private static final int QB=64;
     private static final int evalScale=400;
     public static boolean ready=false;
-    private static final VectorSpecies<Integer> lanes=IntVector.SPECIES_PREFERRED;
-    private static int[] featureWeights=new int[0];
-    private static int[] featureBias=new int[0];
+    private static final VectorSpecies<Short> lanes=ShortVector.SPECIES_PREFERRED;
+    private static final VectorSpecies<Integer> wideLanes=IntVector.SPECIES_PREFERRED;
+    private static short[] featureWeights=new short[0];
+    private static short[] featureBias=new short[0];
     private static int[] ownOutputWeights=new int[0];
     private static int[] enemyOutputWeights =new int[0];
     private static int[] outputBias=new int[1];
@@ -94,12 +96,12 @@ public class Nnue
             }
             ByteBuffer buffer=ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
             buffer.position(headerBytes);
-            int[] newFeatureWeights=new int[newKingBuckets*768*size];
+            short[] newFeatureWeights=new short[newKingBuckets*768*size];
             for(int i=0;i<newFeatureWeights.length;i++)
             {
                 newFeatureWeights[i]=buffer.getShort();
             }
-            int[] newFeatureBias=new int[size];
+            short[] newFeatureBias=new short[size];
             for(int i=0; i<size;i++)
             {
                 newFeatureBias[i]= buffer.getShort();
@@ -176,7 +178,7 @@ public class Nnue
         }
         return (kingView>>1)*768+colorOffset+(pieceType-1)*64+(viewSquare^((kingView&1)*7));
     }
-    public static void refresh(Board board,int perspective,int[] accumulator)
+    public static void refresh(Board board,int perspective,short[] accumulator)
     {
         int kingView=kingView(perspective,board.kingSquare[perspective]);
         System.arraycopy(featureBias,0,accumulator,0,hiddenSize);
@@ -189,43 +191,43 @@ public class Nnue
             }
         }
     }
-    private static void addFeature(int[] accumulator,int feature)
+    private static void addFeature(short[] accumulator,int feature)
     {
         int offset=feature*hiddenSize;
         for(int i=0;i<hiddenSize;i+=lanes.length())
         {
-            IntVector.fromArray(lanes,accumulator,i).add(IntVector.fromArray(lanes,featureWeights,offset+i)).intoArray(accumulator,i);
+            ShortVector.fromArray(lanes,accumulator,i).add(ShortVector.fromArray(lanes,featureWeights,offset+i)).intoArray(accumulator,i);
         }
     }
-    public static void moveFeature(int[] before,int[] after,int removedFeature,int addedFeature)
+    public static void moveFeature(short[] before,short[] after,int removedFeature,int addedFeature)
     {
         int remvoedOffset=removedFeature*hiddenSize;
         int addedOffset=addedFeature*hiddenSize;
         for(int i=0;i<hiddenSize;i+= lanes.length())
         {
-            IntVector.fromArray(lanes,before,i).sub(IntVector.fromArray(lanes,featureWeights,remvoedOffset+i)).add(IntVector.fromArray(lanes,featureWeights,addedOffset+i)).intoArray(after,i);
+            ShortVector.fromArray(lanes,before,i).sub(ShortVector.fromArray(lanes,featureWeights,remvoedOffset+i)).add(ShortVector.fromArray(lanes,featureWeights,addedOffset+i)).intoArray(after,i);
         }
     }
-    public static void captureFeature(int[] before,int[] after,int removedFeature,int capturedFeature,int addedFeature)
+    public static void captureFeature(short[] before,short[] after,int removedFeature,int capturedFeature,int addedFeature)
     {
         int removedOffset=removedFeature*hiddenSize;
         int capturedOffset=capturedFeature*hiddenSize;
         int addedOffset=addedFeature*hiddenSize;
         for(int i=0;i<hiddenSize;i+=lanes.length())
         {
-            IntVector.fromArray(lanes,before,i).sub(IntVector.fromArray(lanes,featureWeights,removedOffset+i)).sub(IntVector.fromArray(lanes,featureWeights,capturedOffset+i)).add(IntVector.fromArray(lanes,featureWeights,addedOffset+i)).intoArray(after,i);
+            ShortVector.fromArray(lanes,before,i).sub(ShortVector.fromArray(lanes,featureWeights,removedOffset+i)).sub(ShortVector.fromArray(lanes,featureWeights,capturedOffset+i)).add(ShortVector.fromArray(lanes,featureWeights,addedOffset+i)).intoArray(after,i);
         }
     }
-    public static void castleFeature(int[] accumulator,int removedFeature,int addedFeature)
+    public static void castleFeature(short[] accumulator,int removedFeature,int addedFeature)
     {
         int removedOffset=removedFeature*hiddenSize;
         int addedOffset=addedFeature*hiddenSize;
         for(int i=0;i<hiddenSize;i+=lanes.length())
         {
-            IntVector.fromArray(lanes,accumulator,i).sub(IntVector.fromArray(lanes,featureWeights,removedOffset+i)).add(IntVector.fromArray(lanes,featureWeights,addedOffset+i)).intoArray(accumulator,i);
+            ShortVector.fromArray(lanes,accumulator,i).sub(ShortVector.fromArray(lanes,featureWeights,removedOffset+i)).add(ShortVector.fromArray(lanes,featureWeights,addedOffset+i)).intoArray(accumulator,i);
         }
     }
-    public static void update(int perspective,int kingView,int[] before ,int[] after,int movedPiece,int from,int placedPiece,int to,int captured,int capturedSquare,int castleRookFrom,int castleRookTo)
+    public static void update(int perspective,int kingView,short[] before ,short[] after,int movedPiece,int from,int placedPiece,int to,int captured,int capturedSquare,int castleRookFrom,int castleRookTo)
     {
         if(captured==Board.EMPTY)
         {
@@ -241,7 +243,7 @@ public class Nnue
             castleFeature(after,featureIndex(perspective,rook,castleRookFrom,kingView),featureIndex(perspective,rook,castleRookTo,kingView));
         }
     }
-    public static int evaluate(int[] ownAccumulator,int[] enemyAccumulator,int pieceCount)
+    public static int evaluate(short[] ownAccumulator,short[] enemyAccumulator,int pieceCount)
     {
         int bucket=0;
         if(outputBuckets==8)
@@ -249,12 +251,18 @@ public class Nnue
             bucket=(pieceCount-2)/4;
         }
         int weightOffset=bucket*hiddenSize;
-        IntVector sum =IntVector.zero(lanes);
+        IntVector sum =IntVector.zero(wideLanes);
+        int half=wideLanes.length();
         for(int i=0;i<hiddenSize;i+= lanes.length())
         {
-            IntVector own=IntVector.fromArray(lanes,ownAccumulator,i).max(0).min(QA);
-            IntVector enemy=IntVector.fromArray(lanes,enemyAccumulator,i).max(0).min(QA);
-            sum=sum.add(own.mul(own).mul(IntVector.fromArray(lanes,ownOutputWeights,weightOffset+i))).add(enemy.mul(enemy).mul(IntVector.fromArray(lanes,enemyOutputWeights,weightOffset+i)));
+            ShortVector ownShort=ShortVector.fromArray(lanes,ownAccumulator,i).max((short)0).min((short)QA);
+            ShortVector enemyShort=ShortVector.fromArray(lanes,enemyAccumulator,i).max((short)0).min((short)QA);
+            for(int part=0;part<2;part++)
+            {
+                IntVector own=(IntVector)ownShort.convertShape(VectorOperators.S2I,wideLanes,part);
+                IntVector enemy=(IntVector)enemyShort.convertShape(VectorOperators.S2I,wideLanes,part);
+                sum=sum.add(own.mul(own).mul(IntVector.fromArray(wideLanes,ownOutputWeights,weightOffset+i+part*half))).add(enemy.mul(enemy).mul(IntVector.fromArray(wideLanes,enemyOutputWeights,weightOffset+i+part*half)));
+            }
         }
         int output=sum.reduceLanes(VectorOperators.ADD);
         output/=QA;
