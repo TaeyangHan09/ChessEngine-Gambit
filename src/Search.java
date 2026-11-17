@@ -13,6 +13,11 @@ public class Search
     public int negamax(Board board,int depth,int individualMovementCount,int alpha,int beta,boolean nullAllowed)
     {
         positionSeen++;
+        int excludedMove=0;
+        if(individualMovementCount<128)
+        {
+            excludedMove=excludedMoveAt[individualMovementCount];
+        }
         boolean inCheck=takeKnownInCheck(board,individualMovementCount);
         peekAtClock();
         if(timesUp)
@@ -38,7 +43,18 @@ public class Search
         }
         int originalAlpha = alpha;
         int transpositionTableIndex = TranspositionTable.find(board.hash);
-        if(transpositionTableIndex!=-1&&TranspositionTable.depthAt(transpositionTableIndex)>=depth)
+        int tableMove=0;
+        int singularTableScore=0;
+        int singularTableFlag=TranspositionTable.upper;
+        int singularTableDepth=0;
+        if(transpositionTableIndex!=-1)
+        {
+            tableMove=TranspositionTable.moveAt(transpositionTableIndex);
+            singularTableScore=scorefromTable(TranspositionTable.scoreAt(transpositionTableIndex),individualMovementCount);
+            singularTableFlag=TranspositionTable.flagAt(transpositionTableIndex);
+            singularTableDepth=TranspositionTable.depthAt(transpositionTableIndex);
+        }
+        if(excludedMove==0&&transpositionTableIndex!=-1&&TranspositionTable.depthAt(transpositionTableIndex)>=depth)
         {
             int transpositionTableScore = scorefromTable(TranspositionTable.scoreAt(transpositionTableIndex),individualMovementCount);
             int transpositionTableFlag = TranspositionTable.flagAt(transpositionTableIndex);
@@ -152,9 +168,8 @@ public class Search
         }
         moves=orderMoves(board,moves,individualMovementCount);
         int counterMoveHere=currentCounterMove;
-        if(transpositionTableIndex!=-1)
+        if(tableMove!=0)
         {
-            int tableMove= TranspositionTable.moveAt((transpositionTableIndex));
             for(int i=0;i<moves.length;i++)
             {
                 if(moves[i]==tableMove)
@@ -168,6 +183,31 @@ public class Search
                 }
             }
         }
+        int singularExtension=0;
+        if(excludedMove==0&&individualMovementCount>0&&individualMovementCount<100&&individualMovementCount<2*rootDepth&&depth>=7&&tableMove!=0&&moves.length>0&&moves[0]==tableMove&&singularTableFlag!=TranspositionTable.upper&&singularTableDepth>=depth-3&&Math.abs(singularTableScore)<checkmate-1000)
+        {
+            int singularBeta=singularTableScore-depth*2;
+            excludedMoveAt[individualMovementCount]=tableMove;
+            setKnownInCheck(individualMovementCount,inCheck?1:0);
+            int singularScore=negamax(board,(depth-1)/2,individualMovementCount,singularBeta-1,singularBeta,false);
+            excludedMoveAt[individualMovementCount]=0;
+            if(timesUp)
+            {
+                return 0;
+            }
+            if(singularScore<singularBeta)
+            {
+                singularExtension=1;
+            }
+            else if(singularBeta>=beta)
+            {
+                return singularBeta;
+            }
+            else if(singularTableScore>=beta)
+            {
+                singularExtension=-1;
+            }
+        }
         int bestMove = 0;
         int bestScore=-checkmate-1;
         int moveNumber = 0;
@@ -175,22 +215,31 @@ public class Search
         int[] triedQuietMoves =triedQuietMovesAt[Math.min(individualMovementCount,127)];
         boolean mover = board.whiteToMove;
         int legalMoveCount=0;
+        boolean skipQuietMoves=false;
         for(int move:moves)
         {
+            if(move==excludedMove)
+            {
+                continue;
+            }
             if(!pvNode&&!inCheck&&depth<=3&&moveNumber>0&&Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0&&loseMaterial(board,move)&&staticExchange(board,move)<-92*depth)
             {
                 continue;
             }
             int ownKingSquare=board.kingSquare[mover?0:1];
             int enemyKingSquare=board.kingSquare[mover?1:0];
+            if(skipQuietMoves&&!Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0&&!mightGiveCheck(move,enemyKingSquare))
+            {
+                continue;
+            }
             board.makeMove(move);
-            if((inCheck||mightExposeKing(move,ownKingSquare))&&MoveGenerator.isKingAttacked(board,mover))
+            if(leavesKingAttacked(board,move,ownKingSquare,mover,inCheck))
             {
                 board.unmakeMove();
                 continue;
             }
             legalMoveCount++;
-            boolean checksOpponent=mightGiveCheck(move,enemyKingSquare)&&MoveGenerator.isKingAttacked(board,board.whiteToMove);
+            boolean checksOpponent=givesCheck(board,move,enemyKingSquare,mover);
             boolean quietMove=!Move.unbitpackcapturePosition(move)&&Move.unbitpackpromotionPosition(move)==0;
             if(!pvNode&&!inCheck&&quietMove&&!checksOpponent&&moveNumber>0&&bestScore>-checkmate+1000)
             {
@@ -201,12 +250,14 @@ public class Search
                 }
                 if(depth<=4&&moveNumber>=lateMoveCount)
                 {
+                    skipQuietMoves=true;
                     board.unmakeMove();
                     moveNumber++;
                     continue;
                 }
                 if(depth<=3&&staticEval+futilityMargin[depth]<=alpha)
                 {
+                    skipQuietMoves=true;
                     board.unmakeMove();
                     moveNumber++;
                     continue;
@@ -220,8 +271,13 @@ public class Search
             }
             if(moveNumber==0)
             {
+                int moveExtension=0;
+                if(move==tableMove)
+                {
+                    moveExtension=singularExtension;
+                }
                 setKnownInCheck(individualMovementCount+1,checksOpponent?1:0);
-                score=-negamax(board,depth-1,individualMovementCount+1,-beta,-alpha,true);
+                score=-negamax(board,depth-1+moveExtension,individualMovementCount+1,-beta,-alpha,true);
             }
             else
             {
@@ -310,7 +366,10 @@ public class Search
                         killers[individualMovementCount][0] = move;
                     }
                 }
-                TranspositionTable.store(board.hash, depth,scoreToTable(score,individualMovementCount), TranspositionTable.lower, move);
+                if(excludedMove==0)
+                {
+                    TranspositionTable.store(board.hash, depth,scoreToTable(score,individualMovementCount), TranspositionTable.lower, move);
+                }
                 return score;
             }
             if(score>bestScore)
@@ -330,6 +389,10 @@ public class Search
         }
         if(legalMoveCount==0)
         {
+            if(excludedMove!=0)
+            {
+                return alpha;
+            }
             if(inCheck)
             {
                 return -checkmate+individualMovementCount;
@@ -349,9 +412,14 @@ public class Search
         {
             flag=TranspositionTable.upper;
         }
-        TranspositionTable.store(board.hash,depth,scoreToTable(bestScore,individualMovementCount),flag,bestMove);
+        if(excludedMove==0)
+        {
+            TranspositionTable.store(board.hash,depth,scoreToTable(bestScore,individualMovementCount),flag,bestMove);
+        }
         return bestScore;
     }
+    private final int[] excludedMoveAt=new int[130];
+    private int rootDepth=0;
     private static final int[] value = {0,100,320,330,500,900,20000};
     private static final int[] futilityMargin={0,156,310,464};
     private static final int[] exchangeValue={0,100,320,330,500,900,20000};
@@ -549,7 +617,7 @@ public class Search
             }
             int attacker = Math.abs(board.squares[from]);
             score+=10000+value[victim]*10-value[attacker]/10;
-            if(loseMaterial(board,move))
+            if(individualMovementCount!=129&&loseMaterial(board,move))
             {
                 score-=20000;
             }
@@ -709,6 +777,82 @@ public class Search
         int columnGap=Math.abs(to%8-enemyKingSquare%8);
         return rowGap*columnGap==2;
     }
+    private static boolean sliderBehind(Board board,int kingSquare,int throughSquare,boolean sliderIsWhite)
+    {
+        int kingRow=kingSquare/8;
+        int kingColumn=kingSquare%8;
+        int rowGap=throughSquare/8-kingRow;
+        int columnGap=throughSquare%8-kingColumn;
+        if(rowGap!=0&&columnGap!=0&&Math.abs(rowGap)!=Math.abs(columnGap))
+        {
+            return false;
+        }
+        int rowStep=Integer.signum(rowGap);
+        int columnStep=Integer.signum(columnGap);
+        boolean straight=rowStep==0||columnStep==0;
+        int row=kingRow+rowStep;
+        int column=kingColumn+columnStep;
+        while(row>=0&&row<=7&&column>=0&&column<=7)
+        {
+            int piece=board.squares[row*8+column];
+            if(piece!=Board.EMPTY)
+            {
+                if((piece>0)!=sliderIsWhite)
+                {
+                    return false;
+                }
+                int pieceType=Math.abs(piece);
+                return pieceType==Board.Queen||(straight&&pieceType==Board.Rook)||(!straight&&pieceType==Board.Bishop);
+            }
+            row+=rowStep;
+            column+=columnStep;
+        }
+        return false;
+    }
+    private static boolean leavesKingAttacked(Board board,int move,int ownKingSquare,boolean mover,boolean inCheck)
+    {
+        int from=Move.unbitpackcurrentPosition(move);
+        if(inCheck||from==ownKingSquare||ownKingSquare==-1||Move.unbitpackenPassant(move))
+        {
+            return MoveGenerator.isKingAttacked(board,mover);
+        }
+        boolean attacked=from!=ownKingSquare&&sliderBehind(board,ownKingSquare,from,!mover);
+        return attacked;
+    }
+    private static boolean givesCheck(Board board,int move,int enemyKingSquare,boolean mover)
+    {
+        if(enemyKingSquare==-1)
+        {
+            return false;
+        }
+        if(Move.unbitpackenPassant(move)||Move.unbitpackcastlingPosition(move)||Move.unbitpackpromotionPosition(move)!=0)
+        {
+            return MoveGenerator.isKingAttacked(board,!mover);
+        }
+        int from=Move.unbitpackcurrentPosition(move);
+        int to=Move.unbitpackchangedPosition(move);
+        int pieceType=Math.abs(board.squares[to]);
+        int rowGap=enemyKingSquare/8-to/8;
+        int columnGap=enemyKingSquare%8-to%8;
+        boolean check=false;
+        if(pieceType==Board.Pawn)
+        {
+            check=Math.abs(columnGap)==1&&rowGap==(mover?-1:1);
+        }
+        else if(pieceType==Board.Knight)
+        {
+            check=Math.abs(rowGap*columnGap)==2;
+        }
+        else if(pieceType!=Board.King)
+        {
+            check=sliderBehind(board,enemyKingSquare,to,mover);
+        }
+        if(!check)
+        {
+            check=sliderBehind(board,enemyKingSquare,from,mover);
+        }
+        return check;
+    }
     private final int[] knownInCheckAt=new int[140];
     {
         java.util.Arrays.fill(knownInCheckAt,-1);
@@ -849,6 +993,7 @@ public class Search
                 startTime=loopPonderHit;
                 budgetNanos=softTimeMs*1000000L;
             }
+            rootDepth=depth;
             long softPercent=54;
             if(depth>6&&stableCount>=3)
             {
@@ -1043,7 +1188,7 @@ public class Search
         }
         int[] moves = MoveGenerator.generateMove(board,!inCheck);
         currentCounterMove=0;
-        moves=orderMoves(board,moves,128);
+        moves=orderMoves(board,moves,inCheck?128:129);
         int firstLosingCapture=moves.length;
         if(!inCheck)
         {
@@ -1073,10 +1218,14 @@ public class Search
                     continue;
                 }
             }
+            if(!inCheck&&Move.unbitpackcapturePosition(move)&&loseMaterial(board,move))
+            {
+                continue;
+            }
             int ownKingSquare=board.kingSquare[mover?0:1];
             int enemyKingSquare=board.kingSquare[mover?1:0];
             board.makeMove(move);
-            if((inCheck||mightExposeKing(move,ownKingSquare))&&MoveGenerator.isKingAttacked(board,mover))
+            if(leavesKingAttacked(board,move,ownKingSquare,mover,inCheck))
             {
                 board.unmakeMove();
                 continue;
