@@ -1,5 +1,5 @@
 
-# ChessEngine_Gambit 1.0
+# Gambit 1.1
 
 A UCI chess engine written in Java by Taeyang Han.
 
@@ -9,10 +9,10 @@ I started the Gambit project in September 2026. Last September, I started a ches
 
 ## Download
 
-- **Windows (no Java needed):** `ChessEngine_Gambit-1.0-windows.zip`. Unzip it and point your GUI at
-  `ChessEngine_Gambit-1.0\ChessEngine_Gambit-1.0.exe`.
-- **Any OS with Java 25+:** `gambit.jar`. Run it with
-  `java --add-modules jdk.incubator.vector -Xmx2g -jar gambit.jar`
+- **Windows (no Java needed):** `Gambit-1.1-windows.zip`. Unzip it and point your GUI at
+  `Gambit-1.1\Gambit-1.1.exe`.
+- **Any OS with Java 25+:** `Gambit_1.1.jar`. Run it with
+  `java --add-modules jdk.incubator.vector -Xmx2g -jar Gambit_1.1.jar
   (the `--add-modules` flag is required).
 
 The neural network (`gambit.nnue`) is built into both downloads. If the engine ever prints
