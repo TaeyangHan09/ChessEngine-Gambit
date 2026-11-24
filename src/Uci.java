@@ -235,7 +235,7 @@ public class Uci
             String command=t[0];
             if(command.equals("uci"))
             {
-                System.out.println("id name ChessEngine_Gambit 1.0");
+                System.out.println("id name Gambit 1.1");
                 System.out.println("id author Taeyang Han");
                 System.out.println("option name Hash type spin default 16 min 1 max 1024");
                 System.out.println("option name Threads type spin default 1 min 1 max 64");
