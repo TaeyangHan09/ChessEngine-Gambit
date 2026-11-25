@@ -21,11 +21,11 @@ The neural network (`gambit.nnue`) is built into both downloads. If the engine e
 ## UCI options
 
 |   Option   | Default |  Range  | Notes |
-|------------|---------|---------|-------|
-| Hash       | '16'      | 1-1024  | MB. If the size does not fit in memory, the engine halves it instead of crashing. |
-| Threads    | '1'       | 1-64    | Lazy SMP. |
-| Ponder     | 'false'   |         | Supports `go ponder` / `ponderhit`. |
-| SyzygyPath | '<empty>' |         | Folder with 3-5 piece Syzygy tablebases. |
+|------------|-----------|---------|-------|
+| Hash       |  16       | 1-1024  | MB. If the size does not fit in memory, the engine halves it instead of crashing. |
+| Threads    |  1        | 1-64    | Lazy SMP. |
+| Ponder     |  false    |         | Supports `go ponder` / `ponderhit`. |
+| SyzygyPath | `<empty>` |         | Folder with 3-5 piece Syzygy tablebases. |
 
 No own opening book. Supports Syzygy endgame tablebases via SyzygyPath.
 
