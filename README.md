@@ -12,7 +12,7 @@ I started the Gambit project in September 2026. Last September, I started a ches
 - **Windows (no Java needed):** `Gambit-1.1-windows.zip`. Unzip it and point your GUI at
   `Gambit-1.1\Gambit-1.1.exe`.
 - **Any OS with Java 25+:** `Gambit_1.1.jar`. Run it with
-  `java --add-modules jdk.incubator.vector -Xmx2g -jar Gambit_1.1.jar'
+  `java --add-modules jdk.incubator.vector -Xmx2g -jar Gambit_1.1.jar`
   (the `--add-modules` flag is required).
 
 The neural network (`gambit.nnue`) is built into both downloads. If the engine ever prints
@@ -20,24 +20,26 @@ The neural network (`gambit.nnue`) is built into both downloads. If the engine e
 
 ## UCI options
 
-| Option  | Default | Range   | Notes |
-|---------|---------|---------|-------|
-| Hash    | 16      | 1-1024  | MB. If the size does not fit in memory, the engine halves it instead of crashing. |
-| Threads | 1       | 1-64    | Lazy SMP. |
-| Ponder  | false   |         | Supports `go ponder` / `ponderhit`. |
+|   Option   | Default |  Range  | Notes |
+|------------|---------|---------|-------|
+| Hash       | '16'      | 1-1024  | MB. If the size does not fit in memory, the engine halves it instead of crashing. |
+| Threads    | '1'       | 1-64    | Lazy SMP. |
+| Ponder     | 'false'   |         | Supports `go ponder` / `ponderhit`. |
+| SyzygyPath | '<empty>' |         | Folder with 3-5 piece Syzygy tablebases. |
 
-No own opening book or endgame tablebases.
+No own opening book. Supports Syzygy endgame tablebases via SyzygyPath.
 
 ## How it works
 
 - Search: alpha-beta (PVS) with iterative deepening, aspiration windows, transposition table,
   null-move pruning, late move reductions, internal iterative reduction, killer / history /
-  countermove move ordering, quiescence search, Lazy SMP.
-- Evaluation: NNUE (768 -> 384x2 -> 1, SCReLU), trained on about 132 million positions from
+  countermove move ordering, singular extensions, quiescence search, Syzygy probing, Lazy SMP.
+- Evaluation: NNUE (768 -> 768x2 -> 1, SCReLU, mirrored inputs, 8 output buckets), trained on about 314 million positions from
   Gambit's own self-play, with inference vectorized using the Java Vector API.
 
 ## Lichess
 
+Tested by CCRL as "Gambit" (v1.0: Blitz 3256).
 Plays as [ChessEngine_Gambit](https://lichess.org/@/ChessEngine_Gambit) on Lichess.
 
 ## Acknowledgements
